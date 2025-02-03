@@ -7,6 +7,9 @@ from pydantic import computed_field
 
 
 class Game(Document):
+    class Settings:
+        name = "games"
+
     rounds_count: int
     players: List[str] = []
     glitch: Optional[str] = None
