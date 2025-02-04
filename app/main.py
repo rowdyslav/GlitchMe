@@ -18,6 +18,13 @@ from flet import (
 from flet.core.control_event import ControlEvent
 
 
+async def get_max_rounds_count():
+    async with ClientSession() as session:
+        return int(
+            await (await session.get(f"{API_URL}/games/max_rounds_count")).text()
+        )
+
+
 async def main(page: Page):
     page.title = "GlitchMe"
 
@@ -26,14 +33,12 @@ async def main(page: Page):
 
         async def create_game(_: ControlEvent):
             async with ClientSession() as session:
-                response = await session.post(
+                return await session.post(
                     f"{API_URL}/games/create", params={"rounds_count": slider.value}
                 )
-                print(await response.json())
-                return response
 
         text = Text("Количество раундов", theme_style=TextThemeStyle.DISPLAY_LARGE)
-        slider = Slider(3, "{value}", 1, 10, 9)
+        slider = Slider(1, "{value}", 1, (m := await get_max_rounds_count()), m - 1)
         button = Button(
             "Создать игру",
             "GAMEPAD",
