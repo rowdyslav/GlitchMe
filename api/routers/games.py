@@ -11,7 +11,7 @@ game_not_found = HTTPException(404, "Игра не найдена")
 
 
 @router.post(
-    "/create/",
+    "/create",
     status_code=status.HTTP_201_CREATED,
     summary="Создание игрового лобби",
     response_description="Созданная запись игры в базе данных",

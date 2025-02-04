@@ -1,12 +1,13 @@
 from collections import defaultdict
 
+from db import db_lifespan
 from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic_core import ValidationError
 from routers.games import router
 
-app = FastAPI()
+app = FastAPI(lifespan=db_lifespan)
 
 
 @app.exception_handler(ValidationError)

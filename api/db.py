@@ -1,0 +1,31 @@
+from contextlib import asynccontextmanager
+
+from beanie import init_beanie
+from environs import Env
+from fastapi import FastAPI
+from icecream import ic
+from models import Game
+from motor.motor_asyncio import AsyncIOMotorClient
+
+env = Env()
+env.read_env()
+
+client = AsyncIOMotorClient(env.str("API_MONGO_URL"))
+db = client["GlitchMe"]
+
+
+@asynccontextmanager
+async def db_lifespan(_: FastAPI):
+    ping_response = await db.command("ping")
+    if int(ping_response["ok"]) != 1:
+        raise Exception("Problem connecting to database cluster.")
+    else:
+        ic("Connected to database cluster.")
+    await init_beanie(
+        database=db,
+        document_models=[
+            Game,
+        ],
+    )
+    yield
+    client.close()

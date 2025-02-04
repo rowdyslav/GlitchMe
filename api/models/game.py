@@ -1,4 +1,4 @@
-from random import choice, choices
+from random import choice, sample
 from typing import List, Optional
 
 from beanie import Document
@@ -17,7 +17,7 @@ class Game(Document):
     @computed_field
     @property
     def rounds_keys(self) -> List[str]:
-        return choices(tuple(ROUNDS_DATA.keys()), k=self.rounds_count)
+        return sample(tuple(ROUNDS_DATA.keys()), self.rounds_count)
 
     async def start(self) -> None:
         self.glitch = choice(self.players)
