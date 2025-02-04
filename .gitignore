@@ -2,3 +2,5 @@
 .env
 
 app/storage
+/venv
+/bot/__pycache__
