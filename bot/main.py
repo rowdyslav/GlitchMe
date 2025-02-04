@@ -3,12 +3,10 @@ from aiogram import Dispatcher
 
 from bot import bot
 
-from commands import router, on_startup
+from commands import router
 
 dp = Dispatcher()
 dp.include_routers(router)
-dp.startup.register(on_startup)
-
 
 
 async def main():
