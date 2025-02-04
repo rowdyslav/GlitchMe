@@ -4,14 +4,12 @@ from aiohttp import ClientSession
 from config import API_URL
 from flet import (
     Button,
-    ButtonStyle,
     CrossAxisAlignment,
     MainAxisAlignment,
     Page,
     RouteChangeEvent,
     Slider,
     Text,
-    TextStyle,
     TextThemeStyle,
     View,
     ViewPopEvent,
