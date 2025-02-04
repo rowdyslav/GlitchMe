@@ -1,15 +1,16 @@
 import asyncio
+
 from aiogram import Dispatcher
-from create_bot import main_bot
 from commands.base import router
+from core import bot
 
 dp = Dispatcher()
 dp.include_routers(router)
 
 
 async def main():
-    await main_bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(main_bot)
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":

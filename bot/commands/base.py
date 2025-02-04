@@ -1,39 +1,19 @@
-from aiogram import Router
-from aiogram.utils.deep_linking import decode_payload
-from aiogram.filters import CommandStart, CommandObject
+from aiogram import F, Router
+from aiogram.filters import CommandObject, CommandStart
 from aiogram.types import Message
-from aiogram.utils.deep_linking import create_start_link
-from create_bot import main_bot
-from misc import api
+from aiogram.utils.deep_linking import decode_payload
+from beanie import PydanticObjectId
+from misc.api_functions import connect_player
+
 router = Router()
-API_URL: str = "http://127.0.0.1:8000"
 
 
-async def create_link(game_id):
-    """Принимает id игры, возвращает ссылку для вступления"""
-    link = await create_start_link(main_bot, game_id, encode=True)
-    return link
-
-
-@router.message(CommandStart(deep_link=True))
-async def start_with_arg(message: Message, command: CommandObject):
+@router.message(CommandStart(deep_link=True, magic=F.command.args))
+async def start(message: Message, command: CommandObject):
     args = command.args
-    game_id = decode_payload(args)
-    player_id = message.from_user.id
-    await api.connect_player(game_id=game_id, player_id=player_id)
+    assert args is not None
+    game_id = PydanticObjectId(decode_payload(args))
+    assert (user := message.from_user) is not None
+    player_id = user.id
+    await connect_player(game_id=game_id, player_id=player_id)
     await message.answer(f"Your payload: {game_id}, {player_id}")
-
-
-# заглушка если /start не без аргумента в ссылке
-@router.message(CommandStart())
-async def start_no_arg(message: Message):
-    player_id = message.from_user.id
-    game_id = "1"
-    await api.connect_player(game_id=game_id, player_id=player_id)
-    await message.answer(f"Your payload: {game_id}, {player_id}\n{1}")
-
-
-# функция которая должна отправлять роли игроку
-# лежит мёртвым грузом т.к. не понял как работать с webhook`ами
-async def send_role(chat_id, message_text):
-    await main_bot.send_message(chat_id=chat_id, text=message_text)
