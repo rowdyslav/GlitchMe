@@ -8,8 +8,8 @@ from config import ROUNDS_DATA
 class Game(Document):
     rounds_count: int
     rounds_keys: list[str] = []
-    players_ids: List[str] = []
-    glitch: Optional[str] = None
+    players_ids: List[int] = []
+    glitch_player_id: Optional[int] = None
 
     MAX_ROUNDS_COUNT: ClassVar[int] = len(ROUNDS_DATA)
 
@@ -20,7 +20,7 @@ class Game(Document):
         self.rounds_keys = sample(list(ROUNDS_DATA), self.rounds_count)
 
     async def start(self) -> None:
-        self.glitch = choice(self.players_ids)
+        self.glitch_player_id = choice(self.players_ids)
         ...
 
     async def next_round(self) -> str:
