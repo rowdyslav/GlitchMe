@@ -30,7 +30,7 @@ async def create(
 
 
 @router.post("/connect/{game_id}")
-async def connect(game_id: PydanticObjectId, player_id: str) -> None:
+async def connect(game_id: PydanticObjectId, player_id: int) -> None:
     game = await Game.get(game_id)
     if not game:
         raise game_not_found
