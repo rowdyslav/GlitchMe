@@ -1,23 +1,29 @@
 from random import choice, sample
-from typing import Any, ClassVar, List, Optional
+from typing import Annotated, Any, ClassVar, Optional
 
 from beanie import Document
 from config import ROUNDS_DATA
+from pydantic import Field
 
 
 class Game(Document):
-    rounds_count: int
-    rounds_keys: list[str] = []
-    players_ids: List[int] = []
-    glitch_player_id: Optional[int] = None
+    """Ключевая модель, представляющая игру/лобби на различных стадиях"""
+
+    rounds_count: Annotated[int, Field(frozen=True)]
+
+    players_ids: list[int] = []
+    rounds_keys: Annotated[tuple[str, ...], Field(frozen=True)] = ()
+    glitch_player_id: Annotated[Optional[int], Field(frozen=True)] = None
 
     MAX_ROUNDS_COUNT: ClassVar[int] = len(ROUNDS_DATA)
 
+    def model_post_init(self, _: Any):
+        object.__setattr__(
+            self, "rounds_keys", tuple(sample(list(ROUNDS_DATA), self.rounds_count))
+        )
+
     class Settings:
         name = "games"
-
-    def model_post_init(self, _: Any) -> None:
-        self.rounds_keys = sample(list(ROUNDS_DATA), self.rounds_count)
 
     async def start(self) -> None:
         self.glitch_player_id = choice(self.players_ids)

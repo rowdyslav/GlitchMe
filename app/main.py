@@ -21,7 +21,7 @@ from flet.core.control_event import ControlEvent
 async def get_max_rounds_count():
     async with ClientSession() as session:
         return int(
-            await (await session.get(f"{API_URL}/games/max_rounds_count")).text()
+            await (await session.get(f"{API_URL}/games/max_rounds_count/")).text()
         )
 
 
