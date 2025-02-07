@@ -3,12 +3,12 @@ from aiogram.filters import CommandObject, CommandStart
 from aiogram.types import Message
 from aiogram.utils.deep_linking import decode_payload
 from beanie import PydanticObjectId
-from misc.api_functions import connect_player
+from bot.misc.from_api import connect_player
 
 router = Router()
 
 
-@router.message(CommandStart(deep_link=True, magic=F.command.args))
+@router.message(CommandStart(deep_link=True, magic=F.args))
 async def start(message: Message, command: CommandObject):
     args = command.args
     assert args is not None

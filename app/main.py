@@ -1,58 +1,28 @@
 import asyncio
 
-from aiohttp import ClientSession
-from config import API_URL
+from base.screens import home
 from flet import (
-    Button,
+    AppView,
     CrossAxisAlignment,
     MainAxisAlignment,
     Page,
     RouteChangeEvent,
-    Slider,
-    Text,
-    TextThemeStyle,
     View,
     ViewPopEvent,
     app_async,
 )
 from flet.core.control_event import ControlEvent
-
-
-async def get_max_rounds_count():
-    async with ClientSession() as session:
-        return int(
-            await (await session.get(f"{API_URL}/games/max_rounds_count/")).text()
-        )
+from flet_restyle import FletReStyle, FletReStyleConfig, google_font
 
 
 async def main(page: Page):
-    page.title = "GlitchMe"
-
-    text = Text("Количество раундов", theme_style=TextThemeStyle.DISPLAY_LARGE)
-    slider = Slider(1, "{value}", 1, (m := await get_max_rounds_count()), m - 1)
-
-    async def create_game(_: ControlEvent):
-        async with ClientSession() as session:
-            return await session.post(
-                f"{API_URL}/games/create", params={"rounds_count": slider.value}
-            )
-
-    button = Button(
-        "Создать игру",
-        "GAMEPAD",
-        "#ffffff",
-        "GREEN",
-        "#000000",
-        on_click=create_game,
-        autofocus=True,
-        scale=2,
-    )
+    page.title = "GlitchMe!"
 
     async def route_change(_: RouteChangeEvent | ControlEvent):
         page.views.clear()
         page.views.append(
             View(
-                controls=[text, slider, button],
+                controls=await home(),
                 vertical_alignment=MainAxisAlignment.CENTER,
                 horizontal_alignment=CrossAxisAlignment.CENTER,
             )
@@ -69,7 +39,14 @@ async def main(page: Page):
     page.on_connect = route_change
     page.on_view_pop = view_pop
 
+    font = "RubikWetPaint-Regular"
+    FletReStyleConfig.theme.font_family = font
+    FletReStyleConfig.font = (
+        font,
+        f"https://raw.githubusercontent.com/google/fonts/master/ofl/rubikwetpaint/{font}.ttf",
+    )
+    FletReStyle.apply_config(page, FletReStyleConfig())
     page.go(page.route)
 
 
-asyncio.run(app_async(main))
+asyncio.run(app_async(main, view=AppView.WEB_BROWSER))

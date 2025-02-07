@@ -1,4 +1,3 @@
-from random import randint
 from typing import Annotated
 
 from beanie import PydanticObjectId
@@ -9,7 +8,7 @@ RoundsCountQuery = Annotated[
     int,
     Query(
         description="Количество раундов",
-        example=randint(1, MAX_ROUNDS_COUNT),
+        example=1,
         ge=1,
         le=MAX_ROUNDS_COUNT,
     ),
