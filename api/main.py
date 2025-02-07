@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic_core import ValidationError
-from routers.games import router
+from routers import all_routers
 
 app = FastAPI(lifespan=db_lifespan)
 
@@ -26,4 +26,5 @@ async def handler(_: Request, exc: ValidationError):
     )
 
 
-app.include_router(router)
+for router in all_routers:
+    app.include_router(router)

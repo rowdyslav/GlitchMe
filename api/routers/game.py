@@ -2,7 +2,7 @@ from config import MAX_ROUNDS_COUNT, MIN_PLAYERS_COUNT
 from fastapi import APIRouter, HTTPException, status
 from schemas import Game, GameIdPath, PlayerIdQuery, RoundsCountQuery
 
-router = APIRouter(prefix="/games", tags=["Игра"])
+router = APIRouter(prefix="/game", tags=["Игра"])
 game_not_found = HTTPException(404, "Игра не найдена")
 
 

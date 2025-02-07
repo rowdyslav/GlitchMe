@@ -17,7 +17,10 @@ RoundsCountQuery = Annotated[
 
 GameIdPath = Annotated[
     PydanticObjectId,
-    Path(description="Айди игры в базе данных", example=PydanticObjectId()),
+    Path(
+        description="Айди игры в базе данных",
+        example="5eb7cf5a86d9755df3a6c593",
+    ),
 ]
 
 PlayerIdQuery = Annotated[int, Query(description="Айди игрока в тг", example=123456789)]
