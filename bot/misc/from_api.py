@@ -1,5 +1,3 @@
-from typing import Dict
-
 from aiohttp import ClientSession
 from beanie import PydanticObjectId
 from config import API_URL
