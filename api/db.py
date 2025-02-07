@@ -4,8 +4,8 @@ from beanie import init_beanie
 from environs import Env
 from fastapi import FastAPI
 from icecream import ic
-from models import Game
 from motor.motor_asyncio import AsyncIOMotorClient
+from schemas import Game
 
 env = Env()
 env.read_env()

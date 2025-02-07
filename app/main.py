@@ -28,28 +28,28 @@ async def get_max_rounds_count():
 async def main(page: Page):
     page.title = "GlitchMe"
 
+    text = Text("Количество раундов", theme_style=TextThemeStyle.DISPLAY_LARGE)
+    slider = Slider(1, "{value}", 1, (m := await get_max_rounds_count()), m - 1)
+
+    async def create_game(_: ControlEvent):
+        async with ClientSession() as session:
+            return await session.post(
+                f"{API_URL}/games/create", params={"rounds_count": slider.value}
+            )
+
+    button = Button(
+        "Создать игру",
+        "GAMEPAD",
+        "#ffffff",
+        "GREEN",
+        "#000000",
+        on_click=create_game,
+        autofocus=True,
+        scale=2,
+    )
+
     async def route_change(_: RouteChangeEvent | ControlEvent):
         page.views.clear()
-
-        async def create_game(_: ControlEvent):
-            async with ClientSession() as session:
-                return await session.post(
-                    f"{API_URL}/games/create", params={"rounds_count": slider.value}
-                )
-
-        text = Text("Количество раундов", theme_style=TextThemeStyle.DISPLAY_LARGE)
-        slider = Slider(1, "{value}", 1, (m := await get_max_rounds_count()), m - 1)
-        button = Button(
-            "Создать игру",
-            "GAMEPAD",
-            "#ffffff",
-            "GREEN",
-            "#000000",
-            on_click=create_game,
-            autofocus=True,
-            scale=2,
-        )
-
         page.views.append(
             View(
                 controls=[text, slider, button],

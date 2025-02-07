@@ -1,8 +1,8 @@
 from random import choice, sample
-from typing import Annotated, Any, ClassVar, Optional
+from typing import Annotated, Any, Optional
 
 from beanie import Document
-from config import ROUNDS_DATA
+from config import ROUNDS_QUESTIONS
 from pydantic import Field
 
 
@@ -15,11 +15,11 @@ class Game(Document):
     rounds_keys: Annotated[tuple[str, ...], Field(frozen=True)] = ()
     glitch_player_id: Annotated[Optional[int], Field(frozen=True)] = None
 
-    MAX_ROUNDS_COUNT: ClassVar[int] = len(ROUNDS_DATA)
-
     def model_post_init(self, _: Any):
         object.__setattr__(
-            self, "rounds_keys", tuple(sample(list(ROUNDS_DATA), self.rounds_count))
+            self,
+            "rounds_keys",
+            tuple(sample(list(ROUNDS_QUESTIONS), self.rounds_count)),
         )
 
     class Settings:
@@ -31,10 +31,12 @@ class Game(Document):
 
     async def next_round(self) -> str:
         try:
-            message = choice(ROUNDS_DATA[next(self.round_keys)])
+            message = choice(ROUNDS_QUESTIONS[next(self.round_keys)])
         except StopIteration:
             await self.stop()
         ...
         return message
 
-    async def stop(self) -> None: ...
+    async def stop(self) -> None:
+        ...
+        await self.delete()

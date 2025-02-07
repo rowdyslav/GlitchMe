@@ -1,9 +1,6 @@
-from random import randint
-from typing import Annotated
-
-from beanie import PydanticObjectId
-from fastapi import APIRouter, HTTPException, Query, status
-from models import Game
+from config import MAX_ROUNDS_COUNT, MIN_PLAYERS_COUNT
+from fastapi import APIRouter, HTTPException, status
+from schemas import Game, GameIdPath, PlayerIdQuery, RoundsCountQuery
 
 router = APIRouter(prefix="/games", tags=["Игра"])
 game_not_found = HTTPException(404, "Игра не найдена")
@@ -15,9 +12,9 @@ game_not_found = HTTPException(404, "Игра не найдена")
     response_description="Число - максимальное количество раундов",
 )
 async def max_rounds_count() -> int:
-    """Возвращает константу модели Game - максимальное количество раундов"""
+    """Возвращает максимально возможное количество раундов"""
 
-    return Game.MAX_ROUNDS_COUNT
+    return MAX_ROUNDS_COUNT
 
 
 @router.post(
@@ -25,30 +22,17 @@ async def max_rounds_count() -> int:
     response_model=Game,
     status_code=status.HTTP_201_CREATED,
     summary="Создание игрового лобби",
-    response_description="Созданная запись игры в базе данных",
+    response_description="Созданная запись игры в бд",
 )
-async def create(
-    rounds_count: Annotated[
-        int,
-        Query(
-            description="Количество раундов",
-            example=randint(1, Game.MAX_ROUNDS_COUNT),
-            ge=1,
-            le=Game.MAX_ROUNDS_COUNT,
-        ),
-    ]
-) -> Game:
-    """Создает объект модели, записывает в базу данных, возвращает"""
+async def create(rounds_count: RoundsCountQuery) -> Game:
+    """Создает объект модели Game, записывает в бд, возвращает созданную запись"""
 
     return await Game(rounds_count=rounds_count).insert()
 
 
-@router.post(
-    "/connect/{game_id}",
-    summary="Подключение игрока к игре",
-)
-async def connect(game_id: PydanticObjectId, player_id: int) -> None:
-    """Добавляет айди игрока, в массив игроков объекта Game"""
+@router.post("/connect/{game_id}", summary="Подключение игрока к игре")
+async def connect(game_id: GameIdPath, player_id: PlayerIdQuery) -> None:
+    """Добавляет айди игрока в массив игроков объекта Game"""
 
     game = await Game.get(game_id)
     if not game:
@@ -60,12 +44,19 @@ async def connect(game_id: PydanticObjectId, player_id: int) -> None:
     await game.save()
 
 
-@router.post("/start/{game_id}")
-async def start(game_id: PydanticObjectId) -> None:
+@router.post(
+    "/start/{game_id}",
+    summary="Запустить игру",
+    response_description="Запись запущенной игры из бд",
+)
+async def start(game_id: GameIdPath) -> Game:
+    """Начинает игру, устанавливая объекту Game поле glitch_player_id"""
+
     game = await Game.get(game_id)
     if not game:
         raise game_not_found
-    if len(game.players_ids) < 5:
+    if len(game.players_ids) < MIN_PLAYERS_COUNT:
         raise HTTPException(409, "Недостатчно игроков для старта!")
 
-    return await game.start()
+    await game.start()
+    return game
