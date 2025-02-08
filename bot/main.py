@@ -1,5 +1,4 @@
 import asyncio
-
 from aiogram import Bot, Dispatcher
 from aiogram.utils.deep_linking import create_start_link
 from beanie import PydanticObjectId
@@ -9,9 +8,13 @@ from environs import Env
 env = Env()
 env.read_env()
 
+
 bot = Bot(token=env.str("BOT_TOKEN"))
 dp = Dispatcher()
 dp.include_routers(*all_routers)
+
+async def on_startup():
+    print('bot activated')
 
 
 async def generate_game_link(game_id: PydanticObjectId) -> str:
@@ -22,8 +25,9 @@ async def generate_game_link(game_id: PydanticObjectId) -> str:
 
 async def main():
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
-
+    dp.startup.register(on_startup)
+    await dp.start_polling(bot, on_startup=on_startup)
+    
 
 if __name__ == "__main__":
     asyncio.run(main())
