@@ -11,17 +11,17 @@ app = FastAPI(lifespan=db_lifespan)
 
 
 @app.exception_handler(ValidationError)
-async def handler(_: Request, exc: ValidationError):
-    reformatted_message = defaultdict(list)
+async def request_error_handler(_: Request, exc: ValidationError):
+    reformatted_errors = defaultdict(list)
     for error in exc.errors():
         loc, msg = tuple(map(str, error["loc"])), error["msg"]
         filtered_loc = loc[1:] if loc[0] in ("body", "query", "path") else loc
-        reformatted_message[".".join(filtered_loc)].append(msg)
+        reformatted_errors[".".join(filtered_loc)].append(msg)
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=jsonable_encoder(
-            {"detail": "Bad request", "errors": reformatted_message}
+            {"detail": "Bad request", "errors": reformatted_errors}
         ),
     )
 

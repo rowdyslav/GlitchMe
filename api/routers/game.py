@@ -1,13 +1,25 @@
+from functools import lru_cache
+
 from config import MAX_ROUNDS_COUNT, MIN_PLAYERS_COUNT
-from fastapi import APIRouter, HTTPException, status
-from schemas import Game, GameIdPath, PlayerIdQuery, RoundsCountQuery
+from fastapi import APIRouter, status
+from schemas import (
+    ErrorResponses,
+    Game,
+    GameIdPath,
+    PlayerIdQuery,
+    RoundsCountQuery,
+    game_not_found,
+    not_enough_players,
+    player_already_connected,
+)
 
 router = APIRouter(prefix="/game", tags=["Игра"])
-game_not_found = HTTPException(404, "Игра не найдена")
 
 
+@lru_cache(maxsize=None)
 @router.get(
     "/max_rounds_count/",
+    response_model=int,
     summary="Получить максимальное возможное количество раундов",
     response_description="Число - максимальное количество раундов",
 )
@@ -22,7 +34,8 @@ async def max_rounds_count() -> int:
     response_model=Game,
     status_code=status.HTTP_201_CREATED,
     summary="Создать лобби",
-    response_description="Созданная запись в бд",
+    response_description="Созданная в бд запись",
+    responses=ErrorResponses(unprocessable_entity=True),
 )
 async def create(rounds_count: RoundsCountQuery) -> Game:
     """Создает объект модели Game, записывает в бд, возвращает созданную запись"""
@@ -30,7 +43,12 @@ async def create(rounds_count: RoundsCountQuery) -> Game:
     return await Game(rounds_count=rounds_count).insert()
 
 
-@router.post("/connect/{game_id}", summary="Подключить игрока")
+@router.post(
+    "/connect/{game_id}",
+    response_model=None,
+    summary="Подключить игрока",
+    responses=ErrorResponses(True, "игрок уже в игре", True),
+)
 async def connect(game_id: GameIdPath, player_id: PlayerIdQuery) -> None:
     """Добавляет айди игрока в массив игроков объекта Game"""
 
@@ -38,7 +56,7 @@ async def connect(game_id: GameIdPath, player_id: PlayerIdQuery) -> None:
     if not game:
         raise game_not_found
     if player_id in game.players_ids:
-        raise HTTPException(409, f"{player_id} уже в игре!")
+        raise player_already_connected
 
     game.players_ids.append(player_id)
     await game.save()
@@ -46,8 +64,10 @@ async def connect(game_id: GameIdPath, player_id: PlayerIdQuery) -> None:
 
 @router.post(
     "/start/{game_id}",
+    response_model=Game,
     summary="Запустить",
     response_description="Обновленная запись из бд",
+    responses=ErrorResponses(True, "недостатчно игроков для старта", True),
 )
 async def start(game_id: GameIdPath) -> Game:
     """Начинает игру, устанавливая объекту Game поле glitch_player_id"""
@@ -56,7 +76,7 @@ async def start(game_id: GameIdPath) -> Game:
     if not game:
         raise game_not_found
     if len(game.players_ids) < MIN_PLAYERS_COUNT:
-        raise HTTPException(409, "Недостатчно игроков для старта!")
+        raise not_enough_players
 
     await game.start()
     return game

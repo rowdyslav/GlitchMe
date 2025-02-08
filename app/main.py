@@ -1,28 +1,56 @@
 import asyncio
 
 from flet import (
+    AppBar,
     AppView,
+    Colors,
+    Column,
     CrossAxisAlignment,
     MainAxisAlignment,
     Page,
     RouteChangeEvent,
+    Text,
+    TextThemeStyle,
+    Theme,
     View,
     ViewPopEvent,
+    VisualDensity,
     app_async,
 )
 from flet.core.control_event import ControlEvent
-from flet_restyle import FletReStyle, FletReStyleConfig
 from src.screens import home
+
+TITLE = "GlitchMe!"
+FONT = ("RubikWetPaint-Regular", "rubikwetpaint", "ofl")
 
 
 async def main(page: Page):
-    page.title = "GlitchMe!"
+    page.title = TITLE
+    page.bgcolor = Colors.with_opacity(0.1, Colors.WHITE)
+    page.fonts = {
+        FONT[0]: "https://raw.githubusercontent.com/google/fonts/master/"
+        f"{FONT[2]}/{FONT[1]}/{FONT[0]}.ttf",
+    }
+    page.theme = Theme(
+        Colors.PURPLE_ACCENT_700,
+        font_family=FONT[0],
+        visual_density=VisualDensity.ADAPTIVE_PLATFORM_DENSITY,
+    )
 
     async def route_change(_: RouteChangeEvent | ControlEvent):
         page.views.clear()
         page.views.append(
             View(
-                controls=await home(),
+                "/",
+                await home(),
+                AppBar(
+                    title=Text(
+                        TITLE,
+                        theme_style=TextThemeStyle.DISPLAY_LARGE,
+                        scale=1.15,
+                    ),
+                    center_title=True,
+                ),
                 vertical_alignment=MainAxisAlignment.CENTER,
                 horizontal_alignment=CrossAxisAlignment.CENTER,
             )
@@ -39,13 +67,6 @@ async def main(page: Page):
     page.on_connect = route_change
     page.on_view_pop = view_pop
 
-    font = "RubikWetPaint-Regular"
-    FletReStyleConfig.theme.font_family = font
-    FletReStyleConfig.font = (
-        font,
-        f"https://raw.githubusercontent.com/google/fonts/master/ofl/rubikwetpaint/{font}.ttf",
-    )
-    FletReStyle.apply_config(page, FletReStyleConfig())
     page.go(page.route)
 
 
