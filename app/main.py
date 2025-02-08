@@ -1,6 +1,5 @@
 import asyncio
 
-from base.screens import home
 from flet import (
     AppView,
     CrossAxisAlignment,
@@ -12,7 +11,8 @@ from flet import (
     app_async,
 )
 from flet.core.control_event import ControlEvent
-from flet_restyle import FletReStyle, FletReStyleConfig, google_font
+from flet_restyle import FletReStyle, FletReStyleConfig
+from src.screens import home
 
 
 async def main(page: Page):

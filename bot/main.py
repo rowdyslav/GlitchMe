@@ -1,33 +1,43 @@
 import asyncio
+
 from aiogram import Bot, Dispatcher
-from aiogram.utils.deep_linking import create_start_link
-from beanie import PydanticObjectId
 from commands import all_routers
 from environs import Env
+from fastapi import FastAPI
+from icecream import ic
+from uvicorn import Config, Server
 
 env = Env()
 env.read_env()
 
-
 bot = Bot(token=env.str("BOT_TOKEN"))
-dp = Dispatcher()
-dp.include_routers(*all_routers)
-
-async def on_startup():
-    print('bot activated')
+webhook = FastAPI()
 
 
-async def generate_game_link(game_id: PydanticObjectId) -> str:
-    """Принимает id игры, возвращает ссылку для вступления"""
+@webhook.post("/send-message/")
+async def send_message(chat_id: str, text: str):
+    """Отправляет сообщение для post запроса в params передать chat_id, text"""
 
-    return await create_start_link(bot, str(game_id), encode=True)
+    try:
+        await bot.send_message(chat_id=chat_id, text=text)
+    except Exception as e:
+        ic(e)
+
+
+async def run_bot():
+    dp = Dispatcher()
+    dp.include_routers(*all_routers)
+    await dp.start_polling(bot)
+
+
+async def run_webhook():
+    server = Server(Config("main:webhook", port=5000, log_level="info"))
+    await server.serve()
 
 
 async def main():
-    await bot.delete_webhook(drop_pending_updates=True)
-    dp.startup.register(on_startup)
-    await dp.start_polling(bot, on_startup=on_startup)
-    
+    await asyncio.gather(run_webhook(), run_bot())
+
 
 if __name__ == "__main__":
     asyncio.run(main())
