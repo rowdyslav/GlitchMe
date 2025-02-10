@@ -6,11 +6,13 @@ from schemas import (
     ErrorResponses,
     Game,
     GameIdPath,
+    Player,
     PlayerIdQuery,
     RoundsCountQuery,
     game_not_found,
     not_enough_players,
     player_already_connected,
+    player_not_found,
 )
 
 router = APIRouter(prefix="/game", tags=["Игра"])
@@ -55,10 +57,9 @@ async def connect(game_id: GameIdPath, player_id: PlayerIdQuery) -> None:
     game = await Game.get(game_id)
     if not game:
         raise game_not_found
-    if player_id in game.players_ids:
+    if player_id in game.players:
         raise player_already_connected
-
-    game.players_ids.append(player_id)
+    game.players.append(Player.link_from_id(player_id))
     await game.save()
 
 
@@ -75,8 +76,14 @@ async def start(game_id: GameIdPath) -> Game:
     game = await Game.get(game_id)
     if not game:
         raise game_not_found
-    if len(game.players_ids) < MIN_PLAYERS_COUNT:
+    if len(game.players) < MIN_PLAYERS_COUNT:
         raise not_enough_players
 
     await game.start()
     return game
+
+
+from icecream import ic
+
+ic(ErrorResponses(unprocessable_entity=True))
+ic(ErrorResponses(True, "недостатчно игроков для старта", True))

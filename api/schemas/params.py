@@ -22,4 +22,6 @@ GameIdPath = Annotated[
     ),
 ]
 
-PlayerIdQuery = Annotated[int, Query(description="Айди игрока в тг", example=123456789)]
+PlayerIdQuery = Annotated[
+    PydanticObjectId, Query(description="Айди игрока в тг", example=123456789)
+]
