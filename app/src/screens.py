@@ -1,4 +1,4 @@
-from flet import Button, Control, Slider, Text, TextThemeStyle
+from flet import Button, Colors, Control, Icons, Slider, Text, TextThemeStyle
 
 from .from_api import get_create_game_func, get_max_rounds_count
 
@@ -17,10 +17,10 @@ async def home() -> tuple[Control, ...]:
     )
     button = Button(
         "Создать игру",
-        "GAMEPAD",
-        "#ffffff",
-        "GREEN",
-        "#000000",
+        Icons.GAMEPAD,
+        Colors.WHITE,
+        Colors.GREEN,
+        Colors.TRANSPARENT,
         on_click=await get_create_game_func(slider),
         scale=2,
     )

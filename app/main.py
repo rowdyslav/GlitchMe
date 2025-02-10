@@ -4,7 +4,6 @@ from flet import (
     AppBar,
     AppView,
     Colors,
-    Column,
     CrossAxisAlignment,
     MainAxisAlignment,
     Page,
