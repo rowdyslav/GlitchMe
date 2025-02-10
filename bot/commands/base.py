@@ -15,5 +15,6 @@ async def start(message: Message, command: CommandObject):
     game_id = PydanticObjectId(decode_payload(args))
     assert (user := message.from_user) is not None
     player_id = user.id
-    await connect_player(game_id=game_id, player_id=player_id)
-    await message.answer(f"Your payload: {game_id}, {player_id}")
+    player_name = user.username or f"{user.first_name}ⁿ"
+    await connect_player(game_id, player_id, player_name)
+    await message.answer(f"{player_name}, вы успешно подключились к игре!")
