@@ -1,6 +1,11 @@
 from aiohttp import ClientSession
-from config import API_URL
+from environs import Env
 from flet import ControlEvent, Slider
+
+env = Env()
+env.read_env()
+
+API_URL = env.str("API_URL")
 
 
 async def get_max_rounds_count() -> int:
