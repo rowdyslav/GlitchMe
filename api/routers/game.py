@@ -1,7 +1,8 @@
 from functools import lru_cache
 
 from config import MAX_ROUNDS_COUNT, MIN_PLAYERS_COUNT
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Response, status
+from misc import from_bot, qr
 from schemas import (
     ErrorResponses,
     Game,
@@ -31,18 +32,24 @@ async def max_rounds_count() -> int:
 
 @router.post(
     "/create",
-    response_model=Game,
+    # response_model=Game,
     status_code=status.HTTP_201_CREATED,
     summary="Создать лобби",
     response_description="Созданная в бд запись",
     responses=ErrorResponses(unprocessable_entity=True),
 )
-async def create(rounds_count: RoundsCountQuery) -> Game:
+async def create(rounds_count: RoundsCountQuery):  # -> Game:
     """Создает объект модели Game, записывает в бд, возвращает созданную запись"""
 
-    await Game(rounds_count=rounds_count).insert()
-
-    return qrcode_image_data
+    game = await Game(rounds_count=rounds_count).insert()
+    assert (game_id := game.id)
+    return Response(
+        content=await qr.gen(
+            await from_bot.get_game_link(game_id),
+            image_url="https://avatars.githubusercontent.com/u/123888576?v=4",
+        ),
+        media_type="image/png",
+    )
 
 
 @router.post(
