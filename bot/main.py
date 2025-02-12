@@ -16,7 +16,7 @@ bot = Bot(token=env.str("BOT_TOKEN"))
 webhook = FastAPI()
 
 
-@webhook.post("/send_message/")
+@webhook.post("/send_message")
 async def send_message(chat_id: str, text: str):
     """Отправляет сообщение для post запроса в params передать chat_id, text"""
 
@@ -26,7 +26,7 @@ async def send_message(chat_id: str, text: str):
         ic(e)
 
 
-@webhook.get("/get_link/")
+@webhook.get("/get_link")
 async def get_link(game_id: PydanticObjectId):
     """отправляет ссылку для подключения к игре"""
 

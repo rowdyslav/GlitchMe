@@ -13,7 +13,7 @@ async def connect_player(
 ) -> dict:
     async with ClientSession() as session:
         async with session.post(
-            f"{API_URL}/games/connect/{game_id}",
+            f"{API_URL}/game/connect/{game_id}",
             json={"name": player_name, "tg_id": player_id},
             ssl=False,
         ) as response:
