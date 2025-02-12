@@ -17,4 +17,4 @@ async def connect_player(
             json={"name": player_name, "tg_id": player_id},
             ssl=False,
         ) as response:
-            return await response.json()
+            return

@@ -3,6 +3,7 @@ from typing import Optional
 
 from beanie import Document, Link
 from config import ROUNDS_QUESTIONS
+from pydantic import PrivateAttr
 
 
 class Player(Document):
@@ -18,13 +19,15 @@ class Player(Document):
 class Game(Document):
     """Ключевая модель, представляющая игру/лобби на различных стадиях"""
 
-    rounds_count: int
-    rounds_keys: tuple[str, ...] = ()
     players: list[Link[Player]] = []
+    rounds_keys: tuple[str, ...] = ()
     glitch_player: Optional[Link[Player]] = None
 
-    def model_post_init(self, _) -> None:
-        self.rounds_keys = tuple(sample(list(ROUNDS_QUESTIONS), self.rounds_count))
+    def __init__(self, rounds_count: int, *args, **kwargs):
+        """Инит объекта игры, единственный аргумент - количество раундов"""
+
+        super().__init__(*args, **kwargs)
+        self.rounds_keys = tuple(sample(list(ROUNDS_QUESTIONS), rounds_count))
 
     class Settings:
         name = "games"

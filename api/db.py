@@ -6,7 +6,7 @@ from environs import Env
 from fastapi import FastAPI
 from icecream import ic
 from motor.motor_asyncio import AsyncIOMotorClient
-from schemas import Game
+from schemas import Game, Player
 
 env = Env()
 env.read_env()
@@ -23,12 +23,10 @@ async def db_lifespan(_: FastAPI):
     if int(ping_response["ok"]) != 1:
         raise Exception("Problem connecting to database cluster.")
     else:
+        await init_beanie(
+            database=db,
+            document_models=[Game, Player],
+        )
         ic("Connected to database cluster.")
-    await init_beanie(
-        database=db,
-        document_models=[
-            Game,
-        ],
-    )
     yield
     client.close()

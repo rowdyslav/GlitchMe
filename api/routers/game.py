@@ -32,46 +32,49 @@ async def max_rounds_count() -> int:
 
 @router.post(
     "/create",
-    # response_model=Game,
     status_code=status.HTTP_201_CREATED,
     summary="Создать лобби",
     response_description="Созданная в бд запись",
     responses=ErrorResponses(unprocessable_entity=True),
 )
-async def create(rounds_count: RoundsCountQuery):  # -> Game:
-    """Создает объект модели Game, записывает в бд, возвращает созданную запись"""
+async def create(rounds_count: RoundsCountQuery) -> Response:
+    """Создает объект модели Game, записывает в бд, возвращает PNG картинку qr кода для подключения к игре"""
 
-    game = await Game(rounds_count=rounds_count).insert()
+    game = await Game(rounds_count).insert()
     assert (game_id := game.id)
+    qr_bytes, qr_media_type = qr.generate(await from_bot.get_game_link(game_id))
     return Response(
-        content=await qr.gen(
-            await from_bot.get_game_link(game_id),
-            image_url="https://avatars.githubusercontent.com/u/123888576?v=4",
-        ),
-        media_type="image/png",
+        qr_bytes,
+        status.HTTP_201_CREATED,
+        media_type=f"image/{qr_media_type}",
     )
 
 
 @router.post(
     "/connect/{game_id}",
-    response_model=None,
     summary="Подключить игрока",
-    responses=ErrorResponses(True, "игрок уже в игре", True),
+    responses=ErrorResponses(
+        not_found=True, conflict="игрок уже в игре", unprocessable_entity=True
+    ),
 )
-async def connect(game_id: GameIdPath, player: Player) -> None:
+async def connect(game_id: GameIdPath, player: Player) -> Response:
     """Добавляет айди игрока в массив игроков объекта Game"""
 
     game = await Game.get(game_id)
     if not game:
         raise game_not_found
 
-    await player.replace()
+    if not await Player.find_one(Player.id == player.id):
+        await player.insert()
+    else:
+        await player.replace()
     player_link = Player.link_from_id(player.id)
     if player_link in game.players:
         raise player_already_connected
 
     game.players.append(player_link)
     await game.save()
+    return Response("ok")
 
 
 @router.post(
@@ -79,7 +82,11 @@ async def connect(game_id: GameIdPath, player: Player) -> None:
     response_model=Game,
     summary="Запустить",
     response_description="Обновленная запись из бд",
-    responses=ErrorResponses(True, "недостатчно игроков для старта", True),
+    responses=ErrorResponses(
+        not_found=True,
+        conflict="недостатчно игроков для старта",
+        unprocessable_entity=True,
+    ),
 )
 async def start(game_id: GameIdPath) -> Game:
     """Начинает игру, устанавливая объекту Game поле glitch_player_id"""

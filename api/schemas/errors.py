@@ -12,6 +12,7 @@ class HTTPError(BaseModel):
 class ErrorResponses(defaultdict):
     def __init__(
         self,
+        *,
         not_found: bool = False,
         conflict: Optional[str] = None,
         unprocessable_entity: bool = False,

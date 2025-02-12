@@ -1,13 +1,14 @@
 import asyncio
 
 from aiogram import Bot, Dispatcher
+from aiogram.utils.deep_linking import create_start_link
+from beanie import PydanticObjectId
 from commands import all_routers
 from environs import Env
 from fastapi import FastAPI
 from icecream import ic
+from pydantic import AnyUrl
 from uvicorn import Config, Server
-from misc.link import generate_game_link
-from beanie import PydanticObjectId
 
 env = Env()
 env.read_env()
@@ -17,8 +18,8 @@ webhook = FastAPI()
 
 
 @webhook.post("/send_message")
-async def send_message(chat_id: str, text: str):
-    """Отправляет сообщение для post запроса в params передать chat_id, text"""
+async def send_message(chat_id: int | str, text: str):
+    """Отправляет сообщение"""
 
     try:
         await bot.send_message(chat_id=chat_id, text=text)
@@ -26,14 +27,11 @@ async def send_message(chat_id: str, text: str):
         ic(e)
 
 
-@webhook.get("/get_link")
-async def get_link(game_id: PydanticObjectId):
-    """отправляет ссылку для подключения к игре"""
+@webhook.get("/game_connect_link", response_model=AnyUrl)
+async def game_connect_link(game_id: PydanticObjectId) -> AnyUrl:
+    """Возвращает ссылку для подключения к игре"""
 
-    try:
-        return await generate_game_link(bot, game_id)
-    except Exception as e:
-        ic(e)
+    return AnyUrl(await create_start_link(bot, str(game_id), encode=True))
 
 
 async def run_bot():
