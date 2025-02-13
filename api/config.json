@@ -1,7 +1,6 @@
 {
     "min_players_count": 5,
     "qr_background_url": "https://media.tenor.com/0hfgAxD0ZlcAAAAj/rowdyslav.gif",
-    "qr_background_kind": "gif",
     "rounds_questions": {
         "first": [],
         "second": [

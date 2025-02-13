@@ -1,16 +1,15 @@
 from random import choice, sample
-from typing import Optional
+from typing import Annotated, Any, Optional
 
-from beanie import Document, Link
+from beanie import Document, Indexed, PydanticObjectId
 from config import ROUNDS_QUESTIONS
-from pydantic import PrivateAttr
 
 
 class Player(Document):
     """Модель игрока"""
 
     name: str
-    tg_id: int
+    tg_id: Annotated[int, Indexed(unique=True)]
 
     class Settings:
         name = "players"
@@ -19,21 +18,20 @@ class Player(Document):
 class Game(Document):
     """Ключевая модель, представляющая игру/лобби на различных стадиях"""
 
-    players: list[Link[Player]] = []
+    rounds_count: int
     rounds_keys: tuple[str, ...] = ()
-    glitch_player: Optional[Link[Player]] = None
+    players_ids: list[PydanticObjectId] = []
+    glitch_player_id: Optional[PydanticObjectId] = None
 
-    def __init__(self, rounds_count: int, *args, **kwargs):
-        """Инит объекта игры, единственный аргумент - количество раундов"""
-
-        super().__init__(*args, **kwargs)
-        self.rounds_keys = tuple(sample(list(ROUNDS_QUESTIONS), rounds_count))
+    def model_post_init(self, __context: Any) -> None:
+        self.rounds_keys = tuple(sample(list(ROUNDS_QUESTIONS), self.rounds_count))
+        return super().model_post_init(__context)
 
     class Settings:
         name = "games"
 
     async def start(self) -> None:
-        self.glitch_player = choice(self.players)
+        self.glitch_player_id = choice(self.players_ids)
         ...
 
     async def next_round(self) -> str:
