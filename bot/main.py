@@ -41,7 +41,7 @@ async def run_bot():
 
 
 async def run_webhook():
-    server = Server(Config("main:webhook", port=5000, log_level="info"))
+    server = Server(Config("main:webhook", port=8443, log_level="info"))
     await server.serve()
 
 

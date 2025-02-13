@@ -1,9 +1,7 @@
-from functools import lru_cache
-
 from beanie import UpdateResponse
 from config import MAX_ROUNDS_COUNT, MIN_PLAYERS_COUNT
 from fastapi import APIRouter, Response, status
-from misc import from_bot, qr
+from misc import generate_qr, get_game_connect_link
 from schemas import (
     ErrorResponses,
     Game,
@@ -19,7 +17,6 @@ from schemas import (
 router = APIRouter(prefix="/game", tags=["Игра"])
 
 
-@lru_cache(maxsize=None)
 @router.get(
     "/max_rounds_count/",
     response_model=int,
@@ -36,17 +33,20 @@ async def max_rounds_count() -> int:
     "/create",
     status_code=status.HTTP_201_CREATED,
     summary="Создать лобби",
-    response_description="QR код для подключения к игре",
-    responses=ErrorResponses(unprocessable_entity=True),
-    response_class=ImageResponse,
+    response_description="QR-код для подключения к игре",
+    responses={
+        201: {"content": {"image/*": {}}},
+        **ErrorResponses(unprocessable_entity=True, service_unavailable=True),
+    },
+    response_class=Response,
 )
-async def create(rounds_count: RoundsCountQuery) -> Response:
-    """Создает объект модели Game, записывает в бд, возвращает qr код для подключения к игре"""
+async def create(rounds_count: RoundsCountQuery) -> ImageResponse:
+    """Создает объект модели Game, записывает в бд, возвращает QR-код для подключения к игре"""
 
     game = await Game(rounds_count=rounds_count).insert()
     assert (game_id := game.id)
-    qr_bytes, qr_mime = qr.generate(await from_bot.get_game_link(game_id))
-    return Response(
+    qr_bytes, qr_mime = generate_qr(await get_game_connect_link(game_id))
+    return ImageResponse(
         qr_bytes,
         status.HTTP_201_CREATED,
         media_type=f"image/{qr_mime}",

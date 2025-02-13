@@ -8,13 +8,9 @@ env.read_env()
 API_URL = env.str("API_URL")
 
 
-async def connect_player(
-    game_id: PydanticObjectId, player_id: int, player_name: str
-) -> dict:
+async def connect_player(game_id: PydanticObjectId, player_id: int, player_name: str):
     async with ClientSession() as session:
-        async with session.post(
+        await session.post(
             f"{API_URL}/game/connect/{game_id}",
             json={"name": player_name, "tg_id": player_id},
-            ssl=False,
-        ) as response:
-            return
+        )
