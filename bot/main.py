@@ -5,7 +5,7 @@ from aiogram.utils.deep_linking import create_start_link
 from beanie import PydanticObjectId
 from commands import all_routers
 from environs import Env
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from icecream import ic
 from pydantic import AnyUrl
 from uvicorn import Config, Server
@@ -25,6 +25,17 @@ async def send_message(chat_id: int | str, text: str):
         await bot.send_message(chat_id=chat_id, text=text)
     except Exception as e:
         ic(e)
+
+
+@webhook.post("/send_messages")
+async def send_messages(chat_ids: dict[str,str]):
+    """Отправляет сообщения, в json принимает dict[chat_id:str, text:str]"""
+
+    for chat_id in chat_ids:
+        try:
+            await bot.send_message(chat_id=chat_id, text=chat_ids[chat_id])
+        except Exception as e:
+            ic(e)
 
 
 @webhook.get("/game_connect_link", response_model=AnyUrl)
