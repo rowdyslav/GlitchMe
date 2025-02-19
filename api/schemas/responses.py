@@ -2,22 +2,15 @@ from collections import defaultdict
 from typing import Optional
 
 from fastapi import Response
-from pydantic import BaseModel
+
+from .errors import HTTPError, RequestDataError
 
 
 class ImageResponse(Response):
     media_type = "image/*"
 
 
-class HTTPError(BaseModel):
-    detail: str
-
-
-class RequestDataError(HTTPError):
-    related_errors: dict[str, list[str]]
-
-
-class ErrorResponses(defaultdict):
+class ErrorResponsesDict(defaultdict):
     def __init__(
         self,
         *,

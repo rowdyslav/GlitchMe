@@ -5,6 +5,7 @@ from fastapi import Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic_core import ValidationError
+from schemas import HTTPError, RequestDataError
 
 
 async def validation(_: Request, exc: Exception):
@@ -20,7 +21,7 @@ async def validation(_: Request, exc: Exception):
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=jsonable_encoder(
-            {"detail": "Bad request", "related_errors": related_errors}
+            RequestDataError(detail="Bad request", related_errors=related_errors),
         ),
     )
 
@@ -31,6 +32,6 @@ async def client_connector(_: Request, exc: Exception):
     return JSONResponse(
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         content=jsonable_encoder(
-            {"detail": "Ошибка подключения к стороннему или внутреннему API"}
+            HTTPError(detail="Ошибка подключения к стороннему или внутреннему API")
         ),
     )

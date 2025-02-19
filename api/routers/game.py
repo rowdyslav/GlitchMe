@@ -3,7 +3,7 @@ from config import MAX_ROUNDS_COUNT, MIN_PLAYERS_COUNT
 from fastapi import APIRouter, Response, status
 from misc import generate_qr, get_game_connect_link
 from schemas import (
-    ErrorResponses,
+    ErrorResponsesDict,
     Game,
     GameIdPath,
     ImageResponse,
@@ -36,7 +36,7 @@ async def max_rounds_count() -> int:
     response_description="QR-код для подключения к игре",
     responses={
         201: {"content": {"image/*": {}}},
-        **ErrorResponses(unprocessable_entity=True, service_unavailable=True),
+        **ErrorResponsesDict(unprocessable_entity=True, service_unavailable=True),
     },
     response_class=Response,
 )
@@ -57,7 +57,7 @@ async def create(rounds_count: RoundsCountQuery) -> ImageResponse:
     "/connect/{game_id}",
     summary="Подключить игрока",
     response_description="Запись игрока из бд",
-    responses=ErrorResponses(
+    responses=ErrorResponsesDict(
         not_found=True, conflict="игрок уже в игре", unprocessable_entity=True
     ),
 )
@@ -90,7 +90,7 @@ async def connect(game_id: GameIdPath, player_data: Player) -> Player:
     response_model=Game,
     summary="Запустить",
     response_description="Обновленная запись из бд",
-    responses=ErrorResponses(
+    responses=ErrorResponsesDict(
         not_found=True,
         conflict="недостатчно игроков для старта",
         unprocessable_entity=True,
@@ -114,7 +114,7 @@ async def start(game_id: GameIdPath) -> Game:
     response_model=str,
     summary="Следующий раунд",
     response_description="Вопрос нового раунда",
-    responses=ErrorResponses(
+    responses=ErrorResponsesDict(
         not_found=True,
         # conflict="недостатчно игроков для старта",
         unprocessable_entity=True,
