@@ -5,14 +5,13 @@ from fastapi import Request, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic_core import ValidationError
-from schemas import HTTPError, RequestDataError
+
+from ..schemas import HTTPError, RequestDataError
 
 
 async def validation(_: Request, exc: Exception):
     assert isinstance(exc, ValidationError)
-    from icecream import ic
 
-    ic(exc, exc.errors())
     related_errors: dict[str, list[str]] = defaultdict(list)
     for error in exc.errors():
         loc, msg = tuple(map(str, error["loc"])), error["msg"]

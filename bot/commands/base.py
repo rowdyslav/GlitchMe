@@ -3,7 +3,8 @@ from aiogram.filters import CommandObject, CommandStart
 from aiogram.types import Message
 from aiogram.utils.deep_linking import decode_payload
 from beanie import PydanticObjectId
-from misc.by_api import connect_player
+
+from ..misc.by_api import connect_player
 
 router = Router()
 

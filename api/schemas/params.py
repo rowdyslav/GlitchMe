@@ -1,8 +1,9 @@
 from typing import Annotated
 
 from beanie import PydanticObjectId
-from config import MAX_ROUNDS_COUNT
 from fastapi import Path, Query
+
+from config import MAX_ROUNDS_COUNT
 
 RoundsCountQuery = Annotated[
     int,

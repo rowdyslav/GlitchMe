@@ -1,8 +1,10 @@
 from beanie import UpdateResponse
-from config import MAX_ROUNDS_COUNT, MIN_PLAYERS_COUNT
 from fastapi import APIRouter, Response, status
-from misc import generate_qr, get_game_connect_link
-from schemas import (
+
+from config import MIN_PLAYERS_COUNT
+
+from ..misc import generate_qr, get_game_connect_link
+from ..schemas import (
     ErrorResponsesDict,
     Game,
     GameIdPath,
@@ -14,18 +16,6 @@ from schemas import (
 )
 
 router = APIRouter(prefix="/game", tags=["Игра"])
-
-
-@router.get(
-    "/max_rounds_count/",
-    response_model=int,
-    summary="Получить максимальное возможное количество раундов",
-    response_description="Число - максимальное количество раундов",
-)
-async def max_rounds_count() -> int:
-    """Возвращает максимально возможное количество раундов"""
-
-    return MAX_ROUNDS_COUNT
 
 
 @router.post(
@@ -114,11 +104,7 @@ async def start(game_id: GameIdPath) -> Game:
     response_model=str,
     summary="Следующий раунд",
     response_description="Вопрос нового раунда",
-    responses=ErrorResponsesDict(
-        not_found=True,
-        # conflict="недостатчно игроков для старта",
-        unprocessable_entity=True,
-    ),
+    responses=ErrorResponsesDict(not_found=True, unprocessable_entity=True),
 )
 async def next_round(game_id: GameIdPath) -> str:
     """Оперирует следующий раунд игры"""

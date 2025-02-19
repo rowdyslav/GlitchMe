@@ -19,6 +19,8 @@ class RequestDataError(HTTPError):
 
 
 class ErrorResponsesDict(defaultdict):
+    """Словарь для поля responses в эндпойнтах FastAPI. Инициализируется с помощью ключевых аргументов, представляющих HTTP ошибки"""
+
     def __init__(
         self,
         *,
@@ -27,13 +29,14 @@ class ErrorResponsesDict(defaultdict):
         unprocessable_entity: bool = False,
         service_unavailable: bool = False,
     ) -> None:
-        """not_found 404
+        """Аргумент: Код ошибки\n
+        not_found 404
         conflict 409
         unprocessable_entity 422
         service_unavailable 503"""
 
         super().__init__(
-            lambda: {"model": HTTPError, "content": {"application/json": {}}}
+            lambda: {"content": {"application/json": {}}, "model": HTTPError}
         )
         if not_found:
             self[404]["description"] = "Не найдено - игра не существует"

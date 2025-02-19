@@ -1,9 +1,10 @@
 from io import BytesIO
 from urllib.request import urlopen
 
-from config import QR_BACKGROUND_URL
 from pydantic import AnyUrl
 from segno import make
+
+from config import QR_BACKGROUND_URL
 
 
 def generate_qr(qr_url: AnyUrl) -> tuple[bytes, str]:

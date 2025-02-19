@@ -3,17 +3,16 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from aiogram.utils.deep_linking import create_start_link
 from beanie import PydanticObjectId
-from commands import all_routers
-from environs import Env
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from icecream import ic
 from pydantic import AnyUrl
 from uvicorn import Config, Server
 
-env = Env()
-env.read_env()
+from env import BOT_TOKEN
 
-bot = Bot(token=env.str("BOT_TOKEN"))
+from .commands import all_routers
+
+bot = Bot(token=BOT_TOKEN)
 webhook = FastAPI()
 
 
@@ -28,7 +27,7 @@ async def send_message(chat_id: int | str, text: str):
 
 
 @webhook.post("/send_messages")
-async def send_messages(chat_ids: dict[str,str]):
+async def send_messages(chat_ids: dict[str, str]):
     """Отправляет сообщения, в json принимает dict[chat_id:str, text:str]"""
 
     for chat_id in chat_ids:
@@ -52,7 +51,7 @@ async def run_bot():
 
 
 async def run_webhook():
-    server = Server(Config("main:webhook", port=8443, log_level="info"))
+    server = Server(Config("bot.main:webhook", port=8443, log_level="info"))
     await server.serve()
 
 

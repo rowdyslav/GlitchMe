@@ -2,9 +2,10 @@ from random import choice, sample
 from typing import Annotated, Any, Generator, Iterable, Iterator, Optional
 
 from beanie import Document, Indexed, PydanticObjectId
-from config import ROUNDS_QUESTIONS
 from pydantic import BeforeValidator, ConfigDict
 from pydantic.main import TupleGenerator
+
+from config import ROUNDS_QUESTIONS
 
 
 class Player(Document):

@@ -17,7 +17,8 @@ from flet import (
     app_async,
 )
 from flet.core.control_event import ControlEvent
-from src.screens import home
+
+from .src import home
 
 TITLE = "GlitchMe!"
 FONT = ("RubikWetPaint-Regular", "rubikwetpaint", "ofl")
@@ -69,4 +70,5 @@ async def main(page: Page):
     page.go(page.route)
 
 
-asyncio.run(app_async(main, view=AppView.WEB_BROWSER))
+if __name__ == "__main__":
+    asyncio.run(app_async(main, port=80, view=AppView.WEB_BROWSER))
