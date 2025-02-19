@@ -56,6 +56,7 @@ async def create(rounds_count: RoundsCountQuery) -> ImageResponse:
 @router.post(
     "/connect/{game_id}",
     summary="Подключить игрока",
+    response_description="Запись игрока из бд",
     responses=ErrorResponses(
         not_found=True, conflict="игрок уже в игре", unprocessable_entity=True
     ),
@@ -64,7 +65,7 @@ async def connect(game_id: GameIdPath, player_data: Player) -> Player:
     """Находит или регистрирует игрока, добавляет ссылку на него в массив игроков объекта Game"""
 
     game = await Game.get(game_id)
-    if not game:
+    if game is None:
         raise game_not_found
 
     player = await Player.find_one(Player.tg_id == player_data.tg_id).upsert(  # type: ignore
@@ -99,10 +100,31 @@ async def start(game_id: GameIdPath) -> Game:
     """Начинает игру, устанавливая объекту Game поле glitch_player_id"""
 
     game = await Game.get(game_id)
-    if not game:
+    if game is None:
         raise game_not_found
     if len(game.players_ids) < MIN_PLAYERS_COUNT:
         raise not_enough_players
 
     await game.start()
     return game
+
+
+@router.post(
+    "/next_round/{game_id}",
+    response_model=str,
+    summary="Следующий раунд",
+    response_description="Вопрос нового раунда",
+    responses=ErrorResponses(
+        not_found=True,
+        # conflict="недостатчно игроков для старта",
+        unprocessable_entity=True,
+    ),
+)
+async def next_round(game_id: GameIdPath) -> str:
+    """Оперирует следующий раунд игры"""
+
+    game = await Game.get(game_id)
+    if game is None:
+        raise game_not_found
+
+    return await game.next_round()

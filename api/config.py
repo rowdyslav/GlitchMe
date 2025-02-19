@@ -2,7 +2,7 @@ import json
 
 from pydantic import AnyUrl
 
-with open("config.json") as f:
+with open("config.json", encoding="UTF-8") as f:
     cfg = json.load(f)
 
 MIN_PLAYERS_COUNT: int = cfg["min_players_count"]

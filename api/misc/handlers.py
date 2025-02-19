@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from pydantic_core import ValidationError
 
 
-async def bad_request(_: Request, exc: Exception):
+async def validation(_: Request, exc: Exception):
     assert isinstance(exc, ValidationError)
     from icecream import ic
 
@@ -25,7 +25,7 @@ async def bad_request(_: Request, exc: Exception):
     )
 
 
-async def client_connection(_: Request, exc: Exception):
+async def client_connector(_: Request, exc: Exception):
     assert isinstance(exc, ClientConnectorError)
 
     return JSONResponse(

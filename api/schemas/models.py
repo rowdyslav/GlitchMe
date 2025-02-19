@@ -1,8 +1,10 @@
-from random import choice, sample
-from typing import Annotated, Any, Optional
+import random
+from typing import Annotated, Any, Generator, Iterable, Iterator, Optional
 
 from beanie import Document, Indexed, PydanticObjectId
 from config import ROUNDS_QUESTIONS
+from pydantic import BeforeValidator, ConfigDict
+from pydantic.main import TupleGenerator
 
 
 class Player(Document):
@@ -16,32 +18,43 @@ class Player(Document):
 
 
 class Game(Document):
-    """Ключевая модель, представляющая игру/лобби на различных стадиях"""
-
     rounds_count: int
-    rounds_keys: tuple[str, ...] = ()
     players_ids: list[PydanticObjectId] = []
     glitch_player_id: Optional[PydanticObjectId] = None
+    rounds_keys: tuple[str, ...] = ()
 
-    def model_post_init(self, __context: Any) -> None:
-        self.rounds_keys = tuple(sample(list(ROUNDS_QUESTIONS), self.rounds_count))
-        return super().model_post_init(__context)
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+    )
+
+    def __next__(self) -> str:
+        return next(iter(self.rounds_keys))
 
     class Settings:
         name = "games"
 
+    def model_post_init(self, __context: Any) -> None:
+        # При инициализации генерируем последовательность ключей в виде итератора
+        self.rounds_keys = tuple(
+            random.sample(list(ROUNDS_QUESTIONS), self.rounds_count)
+        )
+        from icecream import ic
+
+        ic(list(self.rounds_keys), self.rounds_count)
+        return super().model_post_init(__context)
+
     async def start(self) -> None:
-        self.glitch_player_id = choice(self.players_ids)
-        ...
+        # Пример: выбор случайного игрока для glitch
+        self.glitch_player_id = random.choice(self.players_ids)
 
     async def next_round(self) -> str:
         try:
-            message = choice(ROUNDS_QUESTIONS[next(self.round_keys)])
+            message = random.choice(ROUNDS_QUESTIONS[next(self)])
         except StopIteration:
             await self.stop()
-        ...
+            message = "Игра окончена."
         return message
 
     async def stop(self) -> None:
-        ...
+        # Логика завершения игры (например, удаление документа)
         await self.delete()
