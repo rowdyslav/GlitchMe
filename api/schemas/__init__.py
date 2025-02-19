@@ -1,4 +1,5 @@
 from .errors import (
+    ErrorResponsesDict,
     HTTPError,
     RequestDataError,
     game_not_found,
@@ -7,4 +8,3 @@ from .errors import (
 )
 from .models import Game, Player
 from .params import GameIdPath, RoundsCountQuery
-from .responses import ErrorResponsesDict, ImageResponse

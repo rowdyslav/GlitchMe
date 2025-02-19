@@ -6,7 +6,6 @@ from schemas import (
     ErrorResponsesDict,
     Game,
     GameIdPath,
-    ImageResponse,
     Player,
     RoundsCountQuery,
     game_not_found,
@@ -40,16 +39,17 @@ async def max_rounds_count() -> int:
     },
     response_class=Response,
 )
-async def create(rounds_count: RoundsCountQuery) -> ImageResponse:
+async def create(rounds_count: RoundsCountQuery) -> Response:
     """Создает объект модели Game, записывает в бд, возвращает QR-код для подключения к игре"""
 
     game = await Game(rounds_count=rounds_count).insert()
     assert (game_id := game.id)
     qr_bytes, qr_mime = generate_qr(await get_game_connect_link(game_id))
-    return ImageResponse(
+    return Response(
         qr_bytes,
         status.HTTP_201_CREATED,
-        media_type=f"image/{qr_mime}",
+        {"game_id": str(game_id)},
+        f"image/{qr_mime}",
     )
 
 

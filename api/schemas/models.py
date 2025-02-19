@@ -1,4 +1,4 @@
-import random
+from random import choice, sample
 from typing import Annotated, Any, Generator, Iterable, Iterator, Optional
 
 from beanie import Document, Indexed, PydanticObjectId
@@ -27,29 +27,22 @@ class Game(Document):
         arbitrary_types_allowed=True,
     )
 
-    def __next__(self) -> str:
-        return next(iter(self.rounds_keys))
-
     class Settings:
         name = "games"
 
     def model_post_init(self, __context: Any) -> None:
-        # При инициализации генерируем последовательность ключей в виде итератора
-        self.rounds_keys = tuple(
-            random.sample(list(ROUNDS_QUESTIONS), self.rounds_count)
-        )
-        from icecream import ic
-
-        ic(list(self.rounds_keys), self.rounds_count)
+        # При СОЗДАНИИ (if чтобы определять) генерируем последовательность ключей в виде итератора
+        if not self.rounds_keys:
+            self.rounds_keys = tuple(sample(list(ROUNDS_QUESTIONS), self.rounds_count))
         return super().model_post_init(__context)
 
     async def start(self) -> None:
         # Пример: выбор случайного игрока для glitch
-        self.glitch_player_id = random.choice(self.players_ids)
+        self.glitch_player_id = choice(self.players_ids)
 
     async def next_round(self) -> str:
         try:
-            message = random.choice(ROUNDS_QUESTIONS[next(self)])
+            message = choice(ROUNDS_QUESTIONS[next(iter(self.rounds_keys))])
         except StopIteration:
             await self.stop()
             message = "Игра окончена."
