@@ -7,7 +7,7 @@ from segno import make
 
 
 def generate_qr(qr_url: AnyUrl) -> tuple[bytes, str]:
-    """Возвращает кортеж: bytes qr-кода и ее mime тип"""
+    """Возвращает кортеж: bytes qr-кода и его mime тип"""
 
     out = BytesIO()
     url = QR_BACKGROUND_URL.unicode_string()
