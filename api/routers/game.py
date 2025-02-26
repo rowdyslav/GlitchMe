@@ -130,8 +130,7 @@ async def control(websocket: WebSocket, game_id: GameIdPath):
     await websocket.accept()
 
     try:
-        while True:
-            text = await websocket.receive_text()
+        async for text in websocket.iter_text():
             from icecream import ic
 
             ic("Принятый на сервере текст", text)
