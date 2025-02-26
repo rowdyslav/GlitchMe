@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from beanie import init_beanie
-from dns.resolver import Resolver, default_resolver
+from dns import resolver
 from fastapi import FastAPI
 from icecream import ic
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -10,8 +10,8 @@ from env import API_MONGO_URL
 
 from .schemas import Game, Player
 
-default_resolver = Resolver(configure=False)
-default_resolver.nameservers = ["8.8.8.8"]
+resolver.default_resolver = resolver.Resolver(configure=False)
+resolver.default_resolver.nameservers = ["8.8.8.8"]
 client = AsyncIOMotorClient(API_MONGO_URL)
 db = client["GlitchMe"]
 

@@ -1,3 +1,3 @@
-from .game import router as game_router
+from .game import router, ws_router
 
-all_routers = (game_router,)
+all_routers = (router, ws_router)

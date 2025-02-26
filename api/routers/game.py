@@ -1,5 +1,5 @@
 from beanie import UpdateResponse
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Response, WebSocket, WebSocketDisconnect, status
 
 from config import MIN_PLAYERS_COUNT
 
@@ -113,4 +113,25 @@ async def next_round(game_id: GameIdPath) -> str:
     if game is None:
         raise game_not_found
 
+    return await game.next_round()
+
+
+ws_router = APIRouter(prefix="/ws", tags=["Игра"])
+
+
+@ws_router.websocket("/{game_id}")
+async def control(websocket: WebSocket, game_id: GameIdPath):
+    """Оперирует игру"""
+
+    game = await Game.get(game_id)
+    if game is None:
+        raise game_not_found
+
+    await websocket.accept()
+
+    try:
+        while True:
+            text = await websocket.receive_text()
+    except WebSocketDisconnect:
+        ...
     return await game.next_round()
