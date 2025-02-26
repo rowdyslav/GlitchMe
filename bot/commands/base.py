@@ -3,7 +3,7 @@ from aiogram.filters import CommandObject, CommandStart, Command
 from aiogram.types import Message
 from aiogram.utils.deep_linking import decode_payload
 from beanie import PydanticObjectId
-from command_texsts import HELP_TEXT
+from bot.commands.command_texts import HELP_TEXT
 from ..misc.by_api import connect_player
 
 router = Router()
