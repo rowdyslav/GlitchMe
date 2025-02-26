@@ -119,7 +119,7 @@ async def next_round(game_id: GameIdPath) -> str:
 ws_router = APIRouter(prefix="/ws", tags=["Игра"])
 
 
-@ws_router.websocket("/{game_id}")
+@ws_router.websocket("/control/{game_id}")
 async def control(websocket: WebSocket, game_id: GameIdPath):
     """Оперирует игру"""
 
@@ -132,6 +132,10 @@ async def control(websocket: WebSocket, game_id: GameIdPath):
     try:
         while True:
             text = await websocket.receive_text()
+            from icecream import ic
+
+            ic("Принятый на сервере текст", text)
+            if text == "next":
+                return await game.next_round()
     except WebSocketDisconnect:
         ...
-    return await game.next_round()
