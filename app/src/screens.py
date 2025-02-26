@@ -7,7 +7,7 @@ from .from_api import post_create_game_wrapper
 
 async def home() -> tuple[Control, ...]:
     text = Text("Количество раундов", theme_style=TextThemeStyle.DISPLAY_LARGE)
-    slider = Slider(mrc, "{value}", 1, mrc, mrc - 1)
+    slider = Slider(mrc, "{value}", 1, mrc, mrc - 1, data=bytes())
     button = Button(
         "Создать игру",
         Icons.GAMEPAD,
@@ -17,5 +17,4 @@ async def home() -> tuple[Control, ...]:
         on_click=await post_create_game_wrapper(slider),
         scale=2,
     )
-
     return (text, slider, button)

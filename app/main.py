@@ -25,6 +25,8 @@ FONT = ("RubikWetPaint-Regular", "rubikwetpaint", "ofl")
 
 
 async def main(page: Page):
+    pv = page.views
+
     page.title = TITLE
     page.bgcolor = Colors.with_opacity(0.1, Colors.WHITE)
     page.fonts = {
@@ -38,8 +40,8 @@ async def main(page: Page):
     )
 
     async def route_change(_: RouteChangeEvent | ControlEvent):
-        page.views.clear()
-        page.views.append(
+        pv.clear()
+        pv.append(
             View(
                 "/",
                 await home(),
@@ -58,10 +60,10 @@ async def main(page: Page):
         page.update()
 
     async def view_pop(_: ViewPopEvent):
-        page.views.pop()
-        top_view = page.views[-1]
-        assert top_view.route
-        page.go(top_view.route)
+        pv.pop()
+        tvr = pv[-1].route
+        assert tvr is not None
+        page.go(tvr)
 
     page.on_route_change = route_change
     page.on_connect = route_change
