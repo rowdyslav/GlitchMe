@@ -2,6 +2,7 @@ from aiogram import F, Router
 from aiogram.filters import CommandObject, CommandStart, Command
 from aiogram.types import Message
 from aiogram.utils.deep_linking import decode_payload
+from aiogram.enums.parse_mode import ParseMode
 from beanie import PydanticObjectId
 from bot.commands.command_texts import HELP_TEXT
 from ..misc.by_api import connect_player
@@ -28,6 +29,6 @@ async def start_light(message: Message):
     await message.answer(f"Привет, {player_name}!\n/help - помощь")
 
 
-@router.message(Command("help"))
+@router.message(Command(commands=["help", "h", "description"]))
 async def help_command(message: Message):
-    await message.answer(HELP_TEXT)
+    await message.answer(HELP_TEXT, parse_mode=ParseMode.HTML)
