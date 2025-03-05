@@ -1,5 +1,6 @@
 import asyncio
 
+from aiohttp import ClientSession
 from flet import (
     AppBar,
     AppView,

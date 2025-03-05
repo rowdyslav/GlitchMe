@@ -1,9 +1,8 @@
 from random import choice, sample
-from typing import Annotated, Any, Generator, Iterable, Iterator, Optional
+from typing import Annotated, Any, Optional
 
 from beanie import Document, Indexed, PydanticObjectId
-from pydantic import BeforeValidator, ConfigDict
-from pydantic.main import TupleGenerator
+from pydantic import ConfigDict
 
 from config import ROUNDS_QUESTIONS
 
@@ -32,23 +31,21 @@ class Game(Document):
         name = "games"
 
     def model_post_init(self, __context: Any) -> None:
-        # При СОЗДАНИИ (if чтобы определять) генерируем последовательность ключей в виде итератора
-        if not self.rounds_keys:
-            self.rounds_keys = tuple(sample(list(ROUNDS_QUESTIONS), self.rounds_count))
+        self.rounds_keys = tuple(sample(list(ROUNDS_QUESTIONS), self.rounds_count))
+        self._rounds = iter(self.rounds_keys)
         return super().model_post_init(__context)
 
     async def start(self) -> None:
-        # Пример: выбор случайного игрока для glitch
         self.glitch_player_id = choice(self.players_ids)
 
     async def next_round(self) -> str:
         try:
-            message = choice(ROUNDS_QUESTIONS[next(iter(self.rounds_keys))])
+            message = choice(ROUNDS_QUESTIONS[next(self._rounds)])
         except StopIteration:
             await self.stop()
-            message = "Игра окончена."
+            message = "Игра окончена"
         return message
 
     async def stop(self) -> None:
-        # Логика завершения игры (например, удаление документа)
+        # Логика завершения игры
         await self.delete()
