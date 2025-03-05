@@ -116,17 +116,13 @@ async def next_round(game_id: GameIdPath) -> str:
     return await game.next_round()
 
 
-from icecream import ic
-
-ic(-2)
 ws_router = APIRouter(prefix="/ws", tags=["Игра"])
-
-ic(-1)
 
 
 @ws_router.websocket("/control/{game_id}")
 async def control(websocket: WebSocket, game_id: GameIdPath):
     """Оперирует игру"""
+    from icecream import ic
 
     ic(1)
     game = await Game.get(game_id)
@@ -147,6 +143,3 @@ async def control(websocket: WebSocket, game_id: GameIdPath):
             ic(5)
     except WebSocketDisconnect:
         ...
-
-
-ic(0)
