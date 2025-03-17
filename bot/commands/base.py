@@ -5,7 +5,7 @@ from aiogram.utils.deep_linking import decode_payload
 from aiogram.enums.parse_mode import ParseMode
 from beanie import PydanticObjectId
 from bot.commands.command_texts import HELP_TEXT
-from ..misc.by_api import connect_player
+from ..misc.by_api import connect_player, get_players
 
 router = Router()
 
@@ -32,3 +32,11 @@ async def start_light(message: Message):
 @router.message(Command(commands=["help", "h", "description"]))
 async def help_command(message: Message):
     await message.answer(HELP_TEXT, parse_mode=ParseMode.HTML)
+
+
+# нужна ли функция? получение списка игроков
+@router.message(Command("players"))
+async def get_players_list(message: Message):
+    players = get_players(message.from_user.id)
+    pretty_players = "\n".join(list(players.values()))
+    await message.answer(pretty_players)
