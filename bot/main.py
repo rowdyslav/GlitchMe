@@ -7,12 +7,14 @@ from fastapi import FastAPI
 from icecream import ic
 from pydantic import AnyUrl
 from uvicorn import Config, Server
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums.parse_mode import ParseMode
 
 from env import BOT_TOKEN
 
 from .commands import all_routers
 
-bot = Bot(token=BOT_TOKEN)
+bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 webhook = FastAPI()
 
 
