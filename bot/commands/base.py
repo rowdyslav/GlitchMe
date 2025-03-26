@@ -40,7 +40,11 @@ async def help_command(message: Message):
 # нужна ли функция? получение списка игроков
 @router.message(Command("players"))
 async def players(message: Message):
-    players = get_game(players_game_ids[message.from_user.id])
+    user_id = message.from_user.id
+    if user_id not in players_game_ids:
+        await message.answer("Вы не в игре!")
+        return
+    players = get_game(players_game_ids[user_id])
     # id : [name: str, alive: bool]
     pretty_players = "\n".join(
         [
