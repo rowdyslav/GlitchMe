@@ -12,8 +12,8 @@ async def connect_player(game_id: PydanticObjectId, player_id: int, player_name:
         )
 
 
-async def get_players(player_id: id) -> dict[int, str]:
+async def get_game(game_id: id) -> dict | None:
     async with ClientSession() as session:
-        async with session.get(f"{API_URL}/game/get_game/{player_id}") as resp:
-            game = await resp.json() or {"players": "Не удалось получить информацию"}
-            return game["players"]
+        async with session.get(f"{API_URL}/players/{game_id}") as resp:
+            players = await resp.json() or None
+            return players
