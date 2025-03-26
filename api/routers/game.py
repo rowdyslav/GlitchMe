@@ -99,6 +99,24 @@ async def start(game_id: GameIdPath) -> Game:
     return game
 
 
+@router.get(
+    "/players/{game_id}",
+    response_model=list[Player],
+    summary="Игроки",
+    response_description="Список игроков",
+    responses=ErrorResponsesDict(not_found=True),
+)
+async def players(game_id: GameIdPath) -> list[Player]:
+    game = await Game.get(game_id)
+    if game is None:
+        raise game_not_found
+    return [
+        player
+        for player_id in game.players_ids
+        if (player := await Player.get(player_id)) is not None
+    ]
+
+
 @router.post(
     "/next_round/{game_id}",
     response_model=str,
