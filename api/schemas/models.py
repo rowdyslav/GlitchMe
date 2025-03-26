@@ -12,6 +12,7 @@ class Player(Document):
 
     name: str
     tg_id: Annotated[int, Indexed(unique=True)]
+    alive: Optional[bool] = None
 
     class Settings:
         name = "players"
