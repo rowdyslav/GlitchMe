@@ -132,32 +132,3 @@ async def next_round(game_id: GameIdPath) -> str:
         raise game_not_found
 
     return await game.next_round()
-
-
-ws_router = APIRouter(prefix="/ws", tags=["Игра"])
-
-
-@ws_router.websocket("/control/{game_id}")
-async def control(websocket: WebSocket, game_id: GameIdPath):
-    """Оперирует игру"""
-    from icecream import ic
-
-    ic(1)
-    game = await Game.get(game_id)
-    if game is None:
-        raise game_not_found
-
-    ic(1)
-    await websocket.accept()
-    ic(2)
-    try:
-        ic(3)
-        while True:
-            ic(4)
-            msg = await websocket.receive_text()
-            ic("Принятый на сервере текст", msg)
-            if msg == "next":
-                await websocket.send_text(await game.next_round())
-            ic(5)
-    except WebSocketDisconnect:
-        ...

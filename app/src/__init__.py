@@ -1,1 +1,1 @@
-from .screens import home
+from .screens import game, home
