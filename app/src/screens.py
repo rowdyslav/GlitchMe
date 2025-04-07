@@ -3,13 +3,18 @@ from base64 import b64encode
 from flet import (
     Button,
     Colors,
+    Column,
     Control,
+    CrossAxisAlignment,
     Icons,
     Image,
+    MainAxisAlignment,
     Page,
     ProgressRing,
+    Row,
     Slider,
     Text,
+    TextAlign,
     TextThemeStyle,
 )
 from flet.core.control_event import ControlEvent
@@ -56,8 +61,20 @@ async def game(p: Page) -> tuple[Control, ...] | None:
     text = Text(
         "Отсканируй для подключения к игре!", theme_style=TextThemeStyle.DISPLAY_LARGE
     )
-    qr = Image(src_base64=qr_b64)
-    return (
-        text,
-        qr,
+    image = Image(src_base64=qr_b64)
+    text1 = Text(
+        "Игроки 3/3",
+        theme_style=TextThemeStyle.DISPLAY_LARGE,
     )
+    players = Column(
+        [
+            Text(
+                f"{order} {player_name}",
+                text_align=TextAlign.START,
+                theme_style=TextThemeStyle.DISPLAY_MEDIUM,
+            )
+            for order, player_name in enumerate(["f", "s", "t"], start=1)
+        ],
+        horizontal_alignment=CrossAxisAlignment.CENTER,
+    )
+    return (text, image, text1, players)
