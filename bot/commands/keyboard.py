@@ -3,13 +3,13 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.filters.callback_data import CallbackData
 
 
-class PlayerCallbackFactory(CallbackData, prefix="player"):
+class PlayerCallback(CallbackData, prefix="player"):
     player_id: str
     name: str
 
 def players_kb(players):
     inline_kb_list =[
-            [InlineKeyboardButton(text=f"{player['name']}", callback_data=PlayerCallbackFactory( player_id=f"{player['id']}", name=player['name']).pack())]
+            [InlineKeyboardButton(text=f"{player['name']}", callback_data=PlayerCallback( player_id=f"{player['id']}", name=player['name']).pack())]
         for player in players]
     
     return InlineKeyboardMarkup(inline_keyboard=inline_kb_list)
