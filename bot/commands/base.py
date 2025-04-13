@@ -3,10 +3,10 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.types import Message
 from aiogram.utils.deep_linking import decode_payload
+from aiogram.types import CallbackQuery
 from beanie import PydanticObjectId
-
 from bot.commands.command_texts import HELP_TEXT
-
+from .keyboard import players_kb, PlayerCallbackFactory
 from ..misc.by_api import connect_player, get_players
 
 router = Router()
@@ -54,3 +54,26 @@ async def players(message: Message):
         ]
     )
     await message.answer(pretty_players)
+
+
+@router.message(Command("choice"))
+async def choice(message: Message):
+    players = [{'name': 'first_name', 'id':'12345'}, {'name': 'dimon', 'id':'76345'}]
+    await message.answer('Вот тебе инлайн клавиатура со ссылками!', reply_markup=players_kb(players))
+
+
+    
+@router.callback_query(F.data.startswith('player'))
+async def pagination_handler(call: CallbackQuery):
+    print(call)
+    # print(call.callback_data)
+    await call.message.answer(text = f'{call}'[:1000])
+    await call.answer('d')
+
+# @router.callback_query(v)
+# async def button_press(call: CallbackQuery):
+#     print(call)
+#     await call.message.answer(f'{call}'[:1000])
+#     await call.answer(f'f', show_alert=False)
+
+
