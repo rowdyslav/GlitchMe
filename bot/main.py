@@ -30,7 +30,8 @@ async def send_message(chat_id: int | str, text: str):
 
 @webhook.post("/send_messages")
 async def send_messages(chat_ids: dict[str, str]):
-    """Отправляет сообщения, в json принимает dict[chat_id:str, text:str]"""
+    """Отправляет сообщения, в json
+    принимает dict[CHAT_ID:str, TEXT:str]"""
 
     for chat_id in chat_ids:
         try:

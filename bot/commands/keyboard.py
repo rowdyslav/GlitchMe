@@ -22,24 +22,3 @@ def players_vote_kb(players):
     ]
 
     return InlineKeyboardMarkup(inline_keyboard=inline_kb_list)
-
-
-# dun_w это префикс, его можно ловить и стандартным text_startswith=...
-# cd_walk = CallbackData("dun_w", "action", "floor")
-
-
-# @dp.message_handler(commands=['start'])
-# async def start(message: types.Message):
-#     markup = InlineKeyboardMarkup(row_width=2).add(
-#         InlineKeyboardButton(f"Налево",
-#                              callback_data=cd_walk.new(
-#                                  action='1',
-#                                  floor=2
-#                              )),
-#         InlineKeyboardButton(f"Направо",
-#                              callback_data=cd_walk.new(
-#                                  action='2',
-#                                  floor=2
-#                              ))
-#     )
-#     await message.answer("text", reply_markup=markup)
