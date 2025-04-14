@@ -47,7 +47,7 @@ async def game_connect_link(game_id: PydanticObjectId) -> AnyUrl:
     return AnyUrl(await create_start_link(bot, str(game_id), encode=True))
 
 
-@webhook.post("/start_vote")
+@webhook.get("/start_vote")
 async def start_vote(players: list[dict[str, str]]) -> AnyUrl:
     """Голосование за исключение игрока
     список словарей с ключами name и id
