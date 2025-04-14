@@ -17,3 +17,10 @@ async def get_players(game_id: PydanticObjectId) -> list | None:
         async with session.get(f"{API_URL}/players/{game_id}") as resp:
             players = await resp.json() or None
             return players
+
+
+async def player_inclusion(player_id: int):
+    async with ClientSession() as session:
+        await session.post(
+            f"{API_URL}/game/inclusion/{player_id}",
+        )

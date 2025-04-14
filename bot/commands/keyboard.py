@@ -3,18 +3,25 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.filters.callback_data import CallbackData
 
 
-class PlayerCallback(CallbackData, prefix="player"):
-    player_id: str
+class PlayerVoteCallback(CallbackData, prefix="player"):
+    player_id: int
     name: str
 
-def players_kb(players):
-    inline_kb_list =[
-            [InlineKeyboardButton(text=f"{player['name']}", callback_data=PlayerCallback( player_id=f"{player['id']}", name=player['name']).pack())]
-        for player in players]
-    
+
+def players_vote_kb(players):
+    inline_kb_list = [
+        [
+            InlineKeyboardButton(
+                text=f"{player['name']}",
+                callback_data=PlayerVoteCallback(
+                    player_id=f"{player['id']}", name=player["name"]
+                ).pack(),
+            )
+        ]
+        for player in players
+    ]
+
     return InlineKeyboardMarkup(inline_keyboard=inline_kb_list)
-
-
 
 
 # dun_w это префикс, его можно ловить и стандартным text_startswith=...
@@ -36,6 +43,3 @@ def players_kb(players):
 #                              ))
 #     )
 #     await message.answer("text", reply_markup=markup)
-
-
-

@@ -9,7 +9,7 @@ from pydantic import AnyUrl
 from uvicorn import Config, Server
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums.parse_mode import ParseMode
-
+from .commands.keyboard import players_vote_kb
 from env import BOT_TOKEN
 
 from .commands import all_routers
@@ -44,6 +44,23 @@ async def game_connect_link(game_id: PydanticObjectId) -> AnyUrl:
     """Возвращает ссылку для подключения к игре"""
 
     return AnyUrl(await create_start_link(bot, str(game_id), encode=True))
+
+
+@webhook.post("/start_vote")
+async def start_vote(players: list[dict[str, str]]) -> AnyUrl:
+    """Голосование за исключение игрока
+    список словарей с ключами name и id
+    рассылается всем кто в игре"""
+
+    for player in players:
+        try:
+            await bot.send_message(
+                chat_id=player["id"],
+                text="Выбирайте с умом",
+                reply_markup=players_vote_kb(players),
+            )
+        except Exception as e:
+            ic(e)
 
 
 async def run_bot():

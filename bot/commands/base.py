@@ -6,8 +6,8 @@ from aiogram.utils.deep_linking import decode_payload
 from aiogram.types import CallbackQuery
 from beanie import PydanticObjectId
 from bot.commands.command_texts import HELP_TEXT
-from .keyboard import players_kb, PlayerCallback
-from ..misc.by_api import connect_player, get_players
+from .keyboard import players_vote_kb, PlayerCallback
+from ..misc.by_api import connect_player, get_players, player_inclusion
 
 router = Router()
 
@@ -58,14 +58,17 @@ async def players(message: Message):
 
 @router.message(Command("choice"))
 async def choice(message: Message):
-    players = [{'name': 'first_name', 'id':'12345'}, {'name': 'dimon', 'id':'76345'}]
-    await message.answer('Вот тебе инлайн клавиатура со ссылками!', reply_markup=players_kb(players))
+    user_id = message.from_user.id
+    if user_id not in players_game_ids:
+        await message.answer("Вы не в игре!")
+        return
+    players = get_players(players_game_ids[user_id])
+    await message.answer("Выбирайте с умом", reply_markup=players_vote_kb(players))
 
 
-    
 @router.callback_query(PlayerCallback.filter(F.name))
-async def my_callback_foo(query: CallbackQuery, callback_data: PlayerCallback):
-    await query.message.answer(f"{callback_data}")
-    await query.answer(f"{callback_data}")
-
-
+async def start_vote(query: CallbackQuery, callback_data: PlayerCallback):
+    name = callback_data.name
+    _id = callback_data.player_id
+    player_inclusion(player_id=_id)
+    await query.answer(f"Ваш голос был отдан за игрока {name}")
