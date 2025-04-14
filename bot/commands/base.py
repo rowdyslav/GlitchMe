@@ -67,8 +67,12 @@ async def choice(message: Message):
 
 
 @router.callback_query(PlayerCallback.filter(F.name))
-async def start_vote(query: CallbackQuery, callback_data: PlayerCallback):
+async def vote(query: CallbackQuery, callback_data: PlayerCallback):
     name = callback_data.name
     _id = callback_data.player_id
-    player_inclusion(player_id=_id)
-    await query.answer(f"Ваш голос был отдан за игрока {name}")
+    alive = callback_data.alive
+    if alive:
+        player_inclusion(player_id=_id)
+        await query.answer(f"Ваш голос был отдан за игрока {name}")
+    else:
+        await query.answer(f"Вы не можете голосовать(")

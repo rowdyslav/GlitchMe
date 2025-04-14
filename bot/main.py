@@ -47,23 +47,6 @@ async def game_connect_link(game_id: PydanticObjectId) -> AnyUrl:
     return AnyUrl(await create_start_link(bot, str(game_id), encode=True))
 
 
-@webhook.get("/start_vote")
-async def start_vote(players: list[dict[str, str]]) -> AnyUrl:
-    """Голосование за исключение игрока
-    список словарей с ключами name и id
-    рассылается всем кто в игре"""
-
-    for player in players:
-        try:
-            await bot.send_message(
-                chat_id=player["id"],
-                text="Выбирайте с умом",
-                reply_markup=players_vote_kb(players),
-            )
-        except Exception as e:
-            ic(e)
-
-
 async def run_bot():
     dp = Dispatcher()
     dp.include_routers(*all_routers)
