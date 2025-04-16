@@ -40,7 +40,7 @@ async def index() -> tuple[Control, ...]:
         p.session.set("game_id", game_id)
         p.session.set("game_players_min_count", game_players_min_count)
 
-        p.go("/game")
+        p.go("/lobby")
 
     button = Button(
         "Создать игру",
