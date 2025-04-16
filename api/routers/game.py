@@ -1,7 +1,5 @@
 from beanie import UpdateResponse
-from fastapi import APIRouter, Response, WebSocket, WebSocketDisconnect, status
-
-from config import MIN_PLAYERS_COUNT
+from fastapi import APIRouter, Response, status
 
 from ..misc import generate_qr, get_game_connect_link
 from ..schemas import (
@@ -38,7 +36,7 @@ async def create(rounds_count: RoundsCountQuery) -> Response:
     return Response(
         qr_bytes,
         status.HTTP_201_CREATED,
-        {"game_id": str(game_id)},
+        {"game_id": str(game_id), "game_players_min_count": str(game.rounds_count + 2)},
         f"image/{qr_mime}",
     )
 
@@ -92,7 +90,7 @@ async def start(game_id: GameIdPath) -> Game:
     game = await Game.get(game_id)
     if game is None:
         raise game_not_found
-    if len(game.players_ids) < MIN_PLAYERS_COUNT:
+    if len(game.players_ids) < game.rounds_count + 2:
         raise not_enough_players
 
     await game.start()

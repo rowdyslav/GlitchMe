@@ -3,6 +3,7 @@ from flet import (
     AppView,
     Colors,
     Column,
+    ControlEvent,
     CrossAxisAlignment,
     MainAxisAlignment,
     Page,
@@ -17,16 +18,15 @@ from flet import (
     VisualDensity,
     app_async,
 )
-from flet.core.control_event import ControlEvent
 
-from .src import game, home
+from .controls import game, index, lobby
 
 TITLE = "GlitchMe!"
 FONT = ("RubikWetPaint-Regular", "rubikwetpaint", "ofl")
 
 
 async def main(p: Page):
-    pv = p.views
+    pvs = p.views
 
     p.title = TITLE
     p.bgcolor = Colors.with_opacity(0.1, Colors.WHITE)
@@ -41,13 +41,18 @@ async def main(p: Page):
     )
 
     async def route_change(_: RouteChangeEvent | ControlEvent):
-        pv.clear()
-        troute = TemplateRoute(p.route)
-        if troute.match("/game"):
-            screen = await game(p)
+        pr = p.route
+        if pvs[-1].route == pr:
+            return
+        pvs.clear()
+        troute = TemplateRoute(pr)
+        if troute.match("/lobby"):
+            screen = await lobby(p)
+        elif troute.match("/game"):
+            screen = await game()
         else:
-            screen = await home()
-        pv.append(
+            screen = await index()
+        pvs.append(
             View(
                 "/",
                 (
@@ -73,8 +78,8 @@ async def main(p: Page):
         p.update()
 
     async def view_pop(_: ViewPopEvent):
-        pv.pop()
-        tvr = pv[-1].route
+        pvs.pop()
+        tvr = pvs[-1].route
         assert tvr is not None
         p.go(tvr)
 

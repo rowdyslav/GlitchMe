@@ -33,7 +33,6 @@ class Game(Document):
 
     def model_post_init(self, __context: Any) -> None:
         self.rounds_keys = tuple(sample(list(ROUNDS_QUESTIONS), self.rounds_count))
-        self._rounds = iter(self.rounds_keys)
         return super().model_post_init(__context)
 
     async def start(self) -> None:

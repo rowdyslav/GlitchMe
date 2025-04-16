@@ -3,7 +3,7 @@ from typing import Annotated
 from beanie import PydanticObjectId
 from fastapi import Path, Query
 
-from config import MAX_ROUNDS_COUNT
+from config import ROUNDS_MAX_COUNT
 
 RoundsCountQuery = Annotated[
     int,
@@ -11,7 +11,7 @@ RoundsCountQuery = Annotated[
         description="Количество раундов",
         example=1,
         ge=1,
-        le=MAX_ROUNDS_COUNT,
+        le=ROUNDS_MAX_COUNT,
     ),
 ]
 
