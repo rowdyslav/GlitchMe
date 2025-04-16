@@ -56,9 +56,11 @@ async def lobby(p: Page) -> tuple[Control, ...] | None:
             for player_name in player_names
         ]
 
-        if players_count >= int(game_players_min_count):
+        if players_count >= int(game_players_min_count) and len(controls > 3):
             task.cancel()
-            del controls[:1]
+            controls[0].value = controls[2].value
+            controls[1] = controls[3]
+            del controls[2:]
             controls.append(Button("Старт!", on_click=start_game))
 
         p.update()
