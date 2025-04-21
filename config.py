@@ -9,4 +9,4 @@ with open("config.json", encoding="UTF-8") as f:
 ROUNDS_QUESTIONS: dict[str, list[str]] = cfg["rounds_questions"]
 ROUNDS_MAX_COUNT: int = len(ROUNDS_QUESTIONS)
 
-QR_BACKGROUND_URL: AnyUrl = AnyUrl(cfg["qr_background_url"])
+QR_BACKGROUND_URL: str = AnyUrl(cfg["qr_background_url"]).unicode_string()

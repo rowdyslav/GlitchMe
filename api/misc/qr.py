@@ -11,12 +11,11 @@ def generate_qr(qr_url: AnyUrl) -> tuple[bytes, str]:
     """Возвращает кортеж: bytes qr-кода и его mime тип"""
 
     out = BytesIO()
-    url = QR_BACKGROUND_URL.unicode_string()
-    img_kind = url.split(".")[-1]
+    img_kind = QR_BACKGROUND_URL.split(".")[-1]
 
     qr = make(qr_url.unicode_string(), error="h")
     qr.to_artistic(  # type: ignore
-        background=urlopen(url),
+        background=urlopen(QR_BACKGROUND_URL),
         target=out,
         scale=5,
         kind=img_kind,
