@@ -17,9 +17,11 @@ from ..misc import controls_of, get_game_players, post_game_start
 
 
 async def lobby(p: Page) -> tuple[Control, ...] | None:
-    qr_b64 = p.session.get("qr_b64")
-    game_id = p.session.get("game_id")
-    game_players_min_count = p.session.get("game_players_min_count")
+    ps = p.session
+
+    qr_b64 = ps.get("qr_b64")
+    game_id = ps.get("game_id")
+    game_players_min_count = ps.get("game_players_min_count")
     if qr_b64 is None or game_id is None or game_players_min_count is None:
         p.go("/")
         return
@@ -56,7 +58,7 @@ async def lobby(p: Page) -> tuple[Control, ...] | None:
             for player_name in player_names
         ]
 
-        if players_count >= int(game_players_min_count) and len(controls) > 3:
+        if players_count >= game_players_min_count and len(controls) > 3:
             task.cancel()
             controls[0].value = controls[2].value
             controls[1] = controls[3]

@@ -4,7 +4,7 @@ from beanie import PydanticObjectId
 from env import API_URL
 
 
-async def post_game_create(rounds_count: int) -> tuple[bytes, str, str]:
+async def post_game_create(rounds_count: int) -> tuple[bytes, str, int]:
     async with ClientSession() as session:
         async with session.post(
             f"{API_URL}/game/create", params={"rounds_count": rounds_count}
@@ -12,7 +12,7 @@ async def post_game_create(rounds_count: int) -> tuple[bytes, str, str]:
             return (
                 await response.content.read(),
                 response.headers["game_id"],
-                response.headers["game_players_min_count"],
+                int(response.headers["game_players_min_count"]),
             )
 
 

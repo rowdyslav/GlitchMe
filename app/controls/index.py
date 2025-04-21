@@ -6,6 +6,7 @@ from flet import (
     Control,
     ControlEvent,
     Icons,
+    Page,
     ProgressRing,
     Slider,
     Text,
@@ -17,28 +18,28 @@ from config import ROUNDS_MAX_COUNT as mrc
 from ..misc import controls_of, post_game_create
 
 
-async def index() -> tuple[Control, ...]:
+async def index(p: Page) -> tuple[Control, ...]:
     text = Text("Количество раундов", theme_style=TextThemeStyle.DISPLAY_LARGE)
     slider = Slider(mrc, "{value}", 1, mrc, mrc - 1)
 
     async def create_game(_: ControlEvent) -> None:
-        assert (p := slider.page) is not None
-
+        ps = p.session
         controls = controls_of(p)
-        del controls[2]
+
         controls[0].value = "Генерация QR-кода.."
         controls[1] = ProgressRing()
+        del controls[2]
         p.update()
 
         qr_b64, game_id, game_players_min_count = await post_game_create(
             int(slider.value)
         )
-        p.session.set(
+        ps.set(
             "qr_b64",
             b64encode(qr_b64).decode("ascii"),
         )
-        p.session.set("game_id", game_id)
-        p.session.set("game_players_min_count", game_players_min_count)
+        ps.set("game_id", game_id)
+        ps.set("game_players_min_count", game_players_min_count)
 
         p.go("/lobby")
 
@@ -51,4 +52,5 @@ async def index() -> tuple[Control, ...]:
         on_click=create_game,
         scale=2,
     )
+
     return (text, slider, button)
