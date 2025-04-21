@@ -13,7 +13,7 @@ from flet import (
     TextThemeStyle,
 )
 
-from ..misc import get_game_players, get_view_controls, post_game_start
+from ..misc import controls_of, get_game_players, post_game_start
 
 
 async def lobby(p: Page) -> tuple[Control, ...] | None:
@@ -45,7 +45,7 @@ async def lobby(p: Page) -> tuple[Control, ...] | None:
         player_names = [player["name"] for player in await get_game_players(game_id)]
         players_count = len(player_names)
 
-        controls = get_view_controls(p)
+        controls = controls_of(p)
         controls[2].value = f"Игроки {players_count}/{game_players_min_count}"
         controls[3].controls = [
             Text(
@@ -56,7 +56,7 @@ async def lobby(p: Page) -> tuple[Control, ...] | None:
             for player_name in player_names
         ]
 
-        if players_count >= int(game_players_min_count) and len(controls > 3):
+        if players_count >= int(game_players_min_count) and len(controls) > 3:
             task.cancel()
             controls[0].value = controls[2].value
             controls[1] = controls[3]
@@ -65,10 +65,10 @@ async def lobby(p: Page) -> tuple[Control, ...] | None:
 
         p.update()
 
-    async def t():
-        while 1:
+    async def background():
+        while True:
             await sleep(3)
             await change_players_list()
 
-    task = create_task(t())
+    task = create_task(background())
     return (qr_text, qr_image, players_text, players_column)

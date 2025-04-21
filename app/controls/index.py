@@ -14,7 +14,7 @@ from flet import (
 
 from config import ROUNDS_MAX_COUNT as mrc
 
-from ..misc import get_view_controls, post_game_create
+from ..misc import controls_of, post_game_create
 
 
 async def index() -> tuple[Control, ...]:
@@ -24,7 +24,7 @@ async def index() -> tuple[Control, ...]:
     async def create_game(_: ControlEvent) -> None:
         assert (p := slider.page) is not None
 
-        controls = get_view_controls(p)
+        controls = controls_of(p)
         del controls[2]
         controls[0].value = "Генерация QR-кода.."
         controls[1] = ProgressRing()
