@@ -3,7 +3,6 @@ from asyncio import create_task, sleep
 from flet import (
     Button,
     Column,
-    Control,
     ControlEvent,
     CrossAxisAlignment,
     Image,
@@ -16,7 +15,7 @@ from flet import (
 from ..misc import controls_of, get_game_players, post_game_start
 
 
-async def lobby(p: Page) -> tuple[Control, ...] | None:
+async def lobby(p: Page) -> tuple[Text, Image, Text, Column] | None:
     ps = p.session
 
     qr_b64 = ps.get("qr_b64")
@@ -43,34 +42,33 @@ async def lobby(p: Page) -> tuple[Control, ...] | None:
         await post_game_start(game_id)
         p.go("/game")
 
-    async def change_players_list():
-        player_names = [player["name"] for player in await get_game_players(game_id)]
-        players_count = len(player_names)
-
-        controls = controls_of(p)
-        controls[2].value = f"Игроки {players_count}/{game_players_min_count}"
-        controls[3].controls = [
-            Text(
-                player_name,
-                text_align=TextAlign.START,
-                theme_style=TextThemeStyle.DISPLAY_MEDIUM,
-            )
-            for player_name in player_names
-        ]
-
-        if players_count >= game_players_min_count and len(controls) > 3:
-            task.cancel()
-            controls[0].value = controls[2].value
-            controls[1] = controls[3]
-            del controls[2:]
-            controls.append(Button("Старт!", on_click=start_game))
-
-        p.update()
-
-    async def background():
+    async def change_players_list() -> None:
         while True:
             await sleep(3)
-            await change_players_list()
+            player_names = [
+                player["name"] for player in await get_game_players(game_id)
+            ]
+            players_count = len(player_names)
 
-    task = create_task(background())
+            controls = controls_of(p)
+            controls[2].value = f"Игроки {players_count}/{game_players_min_count}"
+            controls[3].controls = [
+                Text(
+                    player_name,
+                    text_align=TextAlign.START,
+                    theme_style=TextThemeStyle.DISPLAY_MEDIUM,
+                )
+                for player_name in player_names
+            ]
+
+            if players_count >= game_players_min_count and len(controls) > 3:
+                task.cancel()
+                controls[0].value = controls[2].value
+                controls[1] = controls[3]
+                del controls[2:]
+                controls.append(Button("Старт!", on_click=start_game))
+
+            p.update()
+
+    task = create_task(change_players_list())
     return (qr_text, qr_image, players_text, players_column)

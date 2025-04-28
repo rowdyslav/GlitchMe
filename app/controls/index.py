@@ -3,7 +3,6 @@ from base64 import b64encode
 from flet import (
     Button,
     Colors,
-    Control,
     ControlEvent,
     Icons,
     Page,
@@ -18,7 +17,7 @@ from config import ROUNDS_MAX_COUNT as mrc
 from ..misc import controls_of, post_game_create
 
 
-async def index(p: Page) -> tuple[Control, ...]:
+async def index(p: Page) -> tuple[Text, Slider, Button]:
     text = Text("Количество раундов", theme_style=TextThemeStyle.DISPLAY_LARGE)
     slider = Slider(mrc, "{value}", 1, mrc, mrc - 1)
 

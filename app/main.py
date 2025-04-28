@@ -49,9 +49,9 @@ async def main(p: Page):
         if troute.match("/lobby"):
             screen = await lobby(p)
         elif troute.match("/game"):
-            screen = await game()
+            screen = await game(p)
         else:
-            screen = await index()
+            screen = await index(p)
         pvs.append(
             View(
                 "/",

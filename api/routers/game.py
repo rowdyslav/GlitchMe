@@ -1,7 +1,7 @@
 from beanie import UpdateResponse
 from fastapi import APIRouter, Response, status
 
-from ..misc import generate_qr, get_game_connect_link
+from ..misc import generate_qr, get_game_connect_link, post_send_messages
 from ..schemas import (
     ErrorResponsesDict,
     Game,
@@ -94,6 +94,7 @@ async def start(game_id: GameIdPath) -> Game:
         raise not_enough_players
 
     await game.start()
+
     return game
 
 
@@ -117,16 +118,17 @@ async def players(game_id: GameIdPath) -> list[Player]:
 
 @router.post(
     "/next_round/{game_id}",
-    response_model=str,
+    response_model=Game,
     summary="Следующий раунд",
-    response_description="Вопрос нового раунда",
+    response_description="response_description",
     responses=ErrorResponsesDict(not_found=True, unprocessable_entity=True),
 )
-async def next_round(game_id: GameIdPath) -> str:
+async def next_round(game_id: GameIdPath) -> Game:
     """Оперирует следующий раунд игры"""
 
     game = await Game.get(game_id)
     if game is None:
         raise game_not_found
 
-    return await game.next_round()
+    await game.next_round()
+    return game
