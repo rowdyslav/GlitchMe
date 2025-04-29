@@ -1,6 +1,6 @@
-from flet import Button, Container, Control, Page, Row, Text
+from flet import Button, Container, Control, ControlEvent, Page, Row, Text
 
-from ..misc import get_game_players
+from ..misc import get_game_players, post_game_start_voting
 
 
 async def game(p: Page) -> tuple[Control, ...] | None:
@@ -18,7 +18,12 @@ async def game(p: Page) -> tuple[Control, ...] | None:
             if player["alive"]
         ]
     )
-    button = Button("Начать голосование")
+
+    async def start_voting(_: ControlEvent):
+        await post_game_start_voting(game_id)
+        p.go("/game")
+
+    button = Button("Начать голосование", on_click=start_voting)
     return (
         text,
         row,

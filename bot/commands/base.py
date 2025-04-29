@@ -7,7 +7,7 @@ from beanie import PydanticObjectId
 
 from bot.commands.command_texts import HELP_TEXT
 
-from ..misc.by_api import connect_player, get_players, player_inclusion
+from ..misc.by_api import get_game_players, post_game_connect, post_player_vote
 from .keyboard import PlayerVoteCallback, players_vote_kb
 
 router = Router()
@@ -23,7 +23,7 @@ async def start_link(message: Message, command: CommandObject):
     assert (user := message.from_user) is not None
     player_id = user.id
     player_name = user.username or f"{user.first_name}ⁿⁿ"
-    await connect_player(game_id, player_id, player_name)
+    await post_game_connect(game_id, player_id, player_name)
     players_game_ids[player_id] = game_id
     await message.answer(f"{player_name}, вы успешно подключились к игре {game_id}!")
 
@@ -46,7 +46,7 @@ async def players(message: Message):
     if user_id not in players_game_ids:
         await message.answer("Вы не в игре!")
         return
-    players = await get_players(players_game_ids[user_id])
+    players = await get_game_players(players_game_ids[user_id])
     # id : [name: str, alive: bool]
     pretty_players = "\n".join(
         [i["name"] if i["alive"] else f"<s>{i['name']}</s>" for i in players]
@@ -60,7 +60,7 @@ async def choice(message: Message):
     if user_id not in players_game_ids:
         await message.answer("Вы не в игре!")
         return
-    players = get_players(players_game_ids[user_id])
+    players = get_game_players(players_game_ids[user_id])
     await message.answer("Выбирайте с умом", reply_markup=players_vote_kb(players))
 
 
@@ -70,7 +70,7 @@ async def vote(query: CallbackQuery, callback_data: PlayerVoteCallback):
     player_id = callback_data.player_id
     alive = callback_data.alive
     if alive:
-        await player_inclusion(player_id=player_id)
+        await post_player_vote(player_tg_id=player_id)
         await query.answer(f"Ваш голос был отдан за игрока {name}")
     else:
         await query.answer(f"Вы не можете голосовать(")

@@ -1,7 +1,6 @@
-from beanie import UpdateResponse
 from fastapi import APIRouter, Response, status
 
-from ..misc import generate_qr, get_game_connect_link, post_send_messages
+from ..misc import generate_qr, get_game_connect_link
 from ..schemas import (
     ErrorResponsesDict,
     Game,
@@ -56,20 +55,11 @@ async def connect(game_id: PathPlayerTgId, player_data: Player) -> Player:
     if game is None:
         raise game_not_found
 
-    player = await Player.find_one(Player.tg_id == player_data.tg_id).upsert(  # type: ignore
-        {"$set": player_data.model_dump(exclude={"id"})},
-        on_insert=player_data,
-        response_type=UpdateResponse.NEW_DOCUMENT,
-    )
-    assert (
-        type(player) is Player and (player_id := player.id) is not None
-    )  # Приходится из за "type: ignore" выше
+    player = await Player.get_or_create(player_data)
 
-    if player_id in game.players_ids:
+    if player.id in game.players_ids:
         raise player_already_connected
 
-    game.players_ids.append(player_id)
-    await game.save()
     return player
 
 

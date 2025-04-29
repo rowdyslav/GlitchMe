@@ -1,11 +1,12 @@
 from random import choice, sample
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any, Optional, Self
 
-from beanie import Document, Indexed, PydanticObjectId
-from misc import post_send_messages
+from beanie import Document, Indexed, PydanticObjectId, UpdateResponse
 from pydantic import ConfigDict
 
 from config import ROUNDS_QUESTIONS
+
+from ..misc import post_send_messages
 
 
 class Player(Document):
@@ -18,6 +19,14 @@ class Player(Document):
 
     class Settings:
         name = "players"
+
+    @classmethod
+    async def get_or_create(cls, data: Self) -> Self:
+        return await cls.find_one(Player.tg_id == player_data.tg_id).upsert(  # type: ignore
+            {"$set": data.model_dump(exclude={"id"})},
+            on_insert=data,
+            response_type=UpdateResponse.NEW_DOCUMENT,
+        )
 
 
 class Game(Document):
@@ -41,6 +50,10 @@ class Game(Document):
         self.glitch_player_id = choice(self.players_ids)
         await self.next_round()
 
+    async def connect(self, player_id: PydanticObjectId):
+        self.players_ids.append(player_id)
+        await self.save()
+
     async def start_voting(self) -> None:
         players = [
             player
@@ -61,6 +74,7 @@ class Game(Document):
         for player in players:
             player.votes = -1
             await player.save()
+        await self.next_round()
 
     async def next_round(self) -> None:
         if self.rounds_count == 0:
