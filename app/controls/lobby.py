@@ -38,7 +38,7 @@ async def lobby(p: Page) -> tuple[Text, Image, Text, Column] | None:
         horizontal_alignment=CrossAxisAlignment.CENTER,
     )
 
-    async def start_game(_: ControlEvent):
+    async def start(_: ControlEvent):
         await post_game_start(game_id)
         p.go("/game")
 
@@ -66,7 +66,7 @@ async def lobby(p: Page) -> tuple[Text, Image, Text, Column] | None:
                 controls[0].value = controls[2].value
                 controls[1] = controls[3]
                 del controls[2:]
-                controls.append(Button("Старт!", on_click=start_game))
+                controls.append(Button("Старт!", on_click=start))
 
             p.update()
 

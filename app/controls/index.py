@@ -21,7 +21,7 @@ async def index(p: Page) -> tuple[Text, Slider, Button]:
     text = Text("Количество раундов", theme_style=TextThemeStyle.DISPLAY_LARGE)
     slider = Slider(mrc, "{value}", 1, mrc, mrc - 1)
 
-    async def create_game(_: ControlEvent) -> None:
+    async def create(_: ControlEvent) -> None:
         ps = p.session
         controls = controls_of(p)
 
@@ -48,7 +48,7 @@ async def index(p: Page) -> tuple[Text, Slider, Button]:
         Colors.WHITE,
         Colors.GREEN,
         Colors.TRANSPARENT,
-        on_click=create_game,
+        on_click=create,
         scale=2,
     )
 
