@@ -1,6 +1,6 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.filters.callback_data import CallbackData
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 class PlayerVoteCallback(CallbackData, prefix="player"):
@@ -9,13 +9,13 @@ class PlayerVoteCallback(CallbackData, prefix="player"):
     alive: bool
 
 
-def players_vote_kb(players):
-    inline_kb_list = [
+def player_vote_ikm(players):
+    inline_keyboard = [
         [
             InlineKeyboardButton(
                 text=f"{player['name']}",
                 callback_data=PlayerVoteCallback(
-                    player_id=f"{player['id']}",
+                    player_id=player["id"],
                     name=player["name"],
                     alive=player["alive"],
                 ).pack(),
@@ -24,4 +24,4 @@ def players_vote_kb(players):
         for player in players
     ]
 
-    return InlineKeyboardMarkup(inline_keyboard=inline_kb_list)
+    return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)

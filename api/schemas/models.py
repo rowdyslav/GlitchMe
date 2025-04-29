@@ -54,22 +54,20 @@ class Game(Document):
         self.players_ids.append(player_id)
         await self.save()
 
-    async def start_voting(self) -> None:
-        players = [
+    async def _players(self) -> list[Player]:
+        return [
             player
             for player_id in self.players_ids
             if (player := await Player.get(player_id)) is not None
         ]
-        for player in players:
+
+    async def start_voting(self) -> None:
+        for player in await self._players():
             player.votes = 0
             await player.save()
 
     async def stop_voting(self) -> None:
-        players = [
-            player
-            for player_id in self.players_ids
-            if (player := await Player.get(player_id)) is not None
-        ]
+        players = await self._players()
         max(players, key=lambda p: p.votes).alive = False
         for player in players:
             player.votes = -1
@@ -85,14 +83,18 @@ class Game(Document):
         round_key = self.rounds_keys.pop(0)
         await self.save()
 
-        question = choice(ROUNDS_QUESTIONS[round_key])
-        glitch_question = choice(ROUNDS_QUESTIONS[round_key])
+        q = lambda: choice(ROUNDS_QUESTIONS[round_key])
+        question = q()
+        glitch_question = q()
         while question == glitch_question:
-            glitch_question = choice(ROUNDS_QUESTIONS[round_key])
+            glitch_question = q()
 
-        messages = {player_id: question for player_id in self.players_ids}
-        assert (gpid := self.glitch_player_id) is not None
-        messages[gpid] = glitch_question
+        messages = {
+            player_tg_id: question
+            for player_tg_id in [player.tg_id for player in await self._players()]
+        }
+        assert (glitch := await Player.get(self.glitch_player_id)) is not None
+        messages[glitch.tg_id] = glitch_question
 
         await post_send_messages(messages)
 
