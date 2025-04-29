@@ -5,7 +5,7 @@ from fastapi import Path, Query
 
 from config import ROUNDS_MAX_COUNT
 
-RoundsCountQuery = Annotated[
+QueryRoundsCount = Annotated[
     int,
     Query(
         description="Количество раундов",
@@ -15,10 +15,26 @@ RoundsCountQuery = Annotated[
     ),
 ]
 
-GameIdPath = Annotated[
+PathGameId = Annotated[
     PydanticObjectId,
     Path(
         description="Айди игры в базе данных",
         example="5eb7cf5a86d9755df3a6c593",
+    ),
+]
+
+PathPlayerTgId = Annotated[
+    int,
+    Path(
+        description="Айди игрока в тг",
+        example="23213232142134124",
+    ),
+]
+
+QueryPlayerTgId = Annotated[
+    int,
+    Query(
+        description="Айди игрока в тг",
+        example="23213232142134124",
     ),
 ]

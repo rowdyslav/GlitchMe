@@ -5,9 +5,9 @@ from ..misc import generate_qr, get_game_connect_link, post_send_messages
 from ..schemas import (
     ErrorResponsesDict,
     Game,
-    GameIdPath,
+    PathPlayerTgId,
     Player,
-    RoundsCountQuery,
+    QueryRoundsCount,
     game_not_found,
     not_enough_players,
     player_already_connected,
@@ -27,7 +27,7 @@ router = APIRouter(prefix="/game", tags=["Игра"])
     },
     response_class=Response,
 )
-async def create(rounds_count: RoundsCountQuery) -> Response:
+async def create(rounds_count: QueryRoundsCount) -> Response:
     """Создает объект модели Game, записывает в бд, возвращает QR-код для подключения к игре"""
 
     game = await Game(rounds_count=rounds_count).insert()
@@ -49,7 +49,7 @@ async def create(rounds_count: RoundsCountQuery) -> Response:
         not_found=True, conflict="игрок уже в игре", unprocessable_entity=True
     ),
 )
-async def connect(game_id: GameIdPath, player_data: Player) -> Player:
+async def connect(game_id: PathPlayerTgId, player_data: Player) -> Player:
     """Находит или регистрирует игрока, добавляет ссылку на него в массив игроков объекта Game"""
 
     game = await Game.get(game_id)
@@ -84,7 +84,7 @@ async def connect(game_id: GameIdPath, player_data: Player) -> Player:
         unprocessable_entity=True,
     ),
 )
-async def start(game_id: GameIdPath) -> Game:
+async def start(game_id: PathPlayerTgId) -> Game:
     """Начинает игру, устанавливая объекту Game поле glitch_player_id"""
 
     game = await Game.get(game_id)
@@ -105,7 +105,7 @@ async def start(game_id: GameIdPath) -> Game:
     response_description="Список игроков",
     responses=ErrorResponsesDict(not_found=True),
 )
-async def players(game_id: GameIdPath) -> list[Player]:
+async def players(game_id: PathPlayerTgId) -> list[Player]:
     game = await Game.get(game_id)
     if game is None:
         raise game_not_found
@@ -123,7 +123,7 @@ async def players(game_id: GameIdPath) -> list[Player]:
     response_description="response_description",
     responses=ErrorResponsesDict(not_found=True, unprocessable_entity=True),
 )
-async def next_round(game_id: GameIdPath) -> Game:
+async def next_round(game_id: PathPlayerTgId) -> Game:
     """Оперирует следующий раунд игры"""
 
     game = await Game.get(game_id)

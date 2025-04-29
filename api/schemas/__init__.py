@@ -5,6 +5,8 @@ from .errors import (
     game_not_found,
     not_enough_players,
     player_already_connected,
+    player_not_found,
+    player_votes_himself,
 )
 from .models import Game, Player
-from .params import GameIdPath, RoundsCountQuery
+from .params import PathGameId, PathPlayerTgId, QueryPlayerTgId, QueryRoundsCount
