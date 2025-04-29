@@ -14,7 +14,7 @@ class Player(Document):
     name: str
     tg_id: Annotated[int, Indexed(unique=True)]
     alive: Optional[bool] = None
-    votes: int = 0
+    votes: int = -1
 
     class Settings:
         name = "players"
@@ -40,6 +40,27 @@ class Game(Document):
     async def start(self) -> None:
         self.glitch_player_id = choice(self.players_ids)
         await self.next_round()
+
+    async def start_voting(self) -> None:
+        players = [
+            player
+            for player_id in self.players_ids
+            if (player := await Player.get(player_id)) is not None
+        ]
+        for player in players:
+            player.votes = 0
+            await player.save()
+
+    async def stop_voting(self) -> None:
+        players = [
+            player
+            for player_id in self.players_ids
+            if (player := await Player.get(player_id)) is not None
+        ]
+        max(players, key=lambda p: p.votes).alive = False
+        for player in players:
+            player.votes = -1
+            await player.save()
 
     async def next_round(self) -> None:
         if self.rounds_count == 0:

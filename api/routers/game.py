@@ -117,18 +117,18 @@ async def players(game_id: PathPlayerTgId) -> list[Player]:
 
 
 @router.post(
-    "/next_round/{game_id}",
+    "/start_voting/{game_id}",
     response_model=Game,
-    summary="Следующий раунд",
+    summary="Начать голосование",
     response_description="response_description",
-    responses=ErrorResponsesDict(not_found=True, unprocessable_entity=True),
+    responses=ErrorResponsesDict(not_found=True),
 )
-async def next_round(game_id: PathPlayerTgId) -> Game:
-    """Оперирует следующий раунд игры"""
+async def start_voting(game_id: PathPlayerTgId) -> Game:
+    """Начинает голосование"""
 
     game = await Game.get(game_id)
     if game is None:
         raise game_not_found
 
-    await game.next_round()
+    await game.start_voting()
     return game

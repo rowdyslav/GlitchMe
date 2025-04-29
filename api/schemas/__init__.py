@@ -6,6 +6,7 @@ from .errors import (
     not_enough_players,
     player_already_connected,
     player_not_found,
+    player_not_in_game,
     player_votes_himself,
 )
 from .models import Game, Player
