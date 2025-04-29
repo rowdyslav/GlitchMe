@@ -1,18 +1,19 @@
 import asyncio
 
 from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums.parse_mode import ParseMode
 from aiogram.utils.deep_linking import create_start_link
 from beanie import PydanticObjectId
 from fastapi import FastAPI
 from icecream import ic
 from pydantic import AnyUrl
 from uvicorn import Config, Server
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums.parse_mode import ParseMode
-from .commands.keyboard import players_vote_kb
+
 from env import BOT_TOKEN
 
 from .commands import all_routers
+from .misc.keyboards import player_vote_ikm
 
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 webhook = FastAPI()

@@ -1,30 +1,37 @@
 from aiogram import F, Router
-from aiogram.enums.parse_mode import ParseMode
 from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.deep_linking import decode_payload
-from beanie import PydanticObjectId
 
-from bot.commands.command_texts import HELP_TEXT
+from env import APP_URL
 
-from ..misc.by_api import get_game_players, post_game_connect, post_player_vote
-from .keyboard import PlayerVoteCallback, players_vote_kb
+from ..misc import (
+    PlayerVoteCallback,
+    get_game_players,
+    player_vote_ikm,
+    post_game_connect,
+    post_player_vote,
+)
 
 router = Router()
 
-players_game_ids = {}
+players_games_ids: dict[int, str] = {}
 
 
 @router.message(CommandStart(deep_link=True, magic=F.args))
 async def start_link(message: Message, command: CommandObject):
+    assert (user := message.from_user) is not None
+
     args = command.args
     assert args is not None
-    game_id = PydanticObjectId(decode_payload(args))
-    assert (user := message.from_user) is not None
-    player_id = user.id
+
+    uid = user.id
     player_name = user.username or f"{user.first_name}ⁿⁿ"
-    await post_game_connect(game_id, player_id, player_name)
-    players_game_ids[player_id] = game_id
+
+    game_id = decode_payload(args)
+    await post_game_connect(game_id, uid, player_name)
+    players_games_ids[uid] = game_id
+
     await message.answer(f"{player_name}, вы успешно подключились к игре {game_id}!")
 
 
@@ -37,16 +44,21 @@ async def start(message: Message):
 
 @router.message(Command(commands=["help", "h", "description"]))
 async def help_command(message: Message):
-    await message.answer(HELP_TEXT)
+    await message.answer(
+        f"""Бот создан для настольной игры GlichMe!
+Для запуска необходимо перейти на <a href="{APP_URL}">сайт</a>, создать лобби и перейти по QR-коду.
+"""
+    )
 
 
 @router.message(Command("players"))
 async def players(message: Message):
-    user_id = message.from_user.id
-    if user_id not in players_game_ids:
+    assert (user := message.from_user) is not None
+    uid = user.id
+    if uid not in players_games_ids:
         await message.answer("Вы не в игре!")
         return
-    players = await get_game_players(players_game_ids[user_id])
+    players = await get_game_players(players_games_ids[uid])
     # id : [name: str, alive: bool]
     pretty_players = "\n".join(
         [i["name"] if i["alive"] else f"<s>{i['name']}</s>" for i in players]
@@ -56,31 +68,26 @@ async def players(message: Message):
 
 @router.message(Command("choice"))
 async def choice(message: Message):
-    user_id = message.from_user.id
-    if user_id not in players_game_ids:
+    assert (user := message.from_user) is not None
+    uid = user.id
+    if uid not in players_games_ids:
         await message.answer("Вы не в игре!")
         return
-    players = get_game_players(players_game_ids[user_id])
-    user_vote = False
-    for player in players:
-        if player['id'] == user_id:
-            voter_alive = player['alive']
-            if player['votes'] != -1:
-                await message.answer("Вы уже проголосовали в этом раунде!")
-                user_vote = True
-    await message.answer("Выбирайте с умом", reply_markup=players_vote_kb(players, user_vote, voter_alive))
+    players = get_game_players(players_games_ids[uid])
+    await message.answer("Выбирайте с умом", reply_markup=player_vote_ikm(players))
 
 
 @router.callback_query(PlayerVoteCallback.filter(F.name))
 async def vote(query: CallbackQuery, callback_data: PlayerVoteCallback):
+    assert (user := query.from_user) is not None
+    uid = user.id
+
     name = callback_data.name
-    nominee_id = callback_data.player_id
+    voted_id = callback_data.player_id
     alive = callback_data.alive
-    user_vote = callback_data.user_vote
-    voter_alive = callback_data.voter_alive
-    voter_id = query.from_user.id
-    if alive and not user_vote and voter_alive:
-        await post_player_vote(nominee_id= nominee_id, voter_id =voter_id)
+
+    if alive:
+        await post_player_vote(uid, voted_id)
         await query.answer(f"Ваш голос был отдан за игрока {name}")
     else:
-        await query.answer(f"Вы не можете голосовать(")
+        await query.answer(f"Выбывшие игроки не могут голосовать")
