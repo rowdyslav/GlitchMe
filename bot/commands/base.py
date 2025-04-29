@@ -61,16 +61,26 @@ async def choice(message: Message):
         await message.answer("Вы не в игре!")
         return
     players = get_game_players(players_game_ids[user_id])
-    await message.answer("Выбирайте с умом", reply_markup=players_vote_kb(players))
+    user_vote = False
+    for player in players:
+        if player['id'] == user_id:
+            voter_alive = player['alive']
+            if player['votes'] != -1:
+                await message.answer("Вы уже проголосовали в этом раунде!")
+                user_vote = True
+    await message.answer("Выбирайте с умом", reply_markup=players_vote_kb(players, user_vote, voter_alive))
 
 
 @router.callback_query(PlayerVoteCallback.filter(F.name))
 async def vote(query: CallbackQuery, callback_data: PlayerVoteCallback):
     name = callback_data.name
-    player_id = callback_data.player_id
+    nominee_id = callback_data.player_id
     alive = callback_data.alive
-    if alive:
-        await post_player_vote(player_tg_id=player_id)
+    user_vote = callback_data.user_vote
+    voter_alive = callback_data.voter_alive
+    voter_id = query.from_user.id
+    if alive and not user_vote and voter_alive:
+        await post_player_vote(nominee_id= nominee_id, voter_id =voter_id)
         await query.answer(f"Ваш голос был отдан за игрока {name}")
     else:
         await query.answer(f"Вы не можете голосовать(")

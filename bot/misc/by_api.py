@@ -20,8 +20,8 @@ async def get_game_players(game_id: PydanticObjectId) -> list | None:
             return await resp.json() or None
 
 
-async def post_player_vote(player_tg_id: int) -> None:
+async def post_player_vote(nominee_id: int,voter_id: int) -> None:
     async with ClientSession() as session:
         await session.post(
-            f"{API_URL}/player/vote/{player_tg_id}",
+            f"{API_URL}/player/vote/{voter_id}/{nominee_id}",
         )
