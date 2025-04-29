@@ -36,6 +36,7 @@ async def game(p: Page) -> tuple[Control, ...] | None:
                 if player["alive"]
             }
 
+        button.visible = False
         old_alive = await names()
         while True:
             await sleep(3)
@@ -48,6 +49,7 @@ async def game(p: Page) -> tuple[Control, ...] | None:
                 )
                 await sleep(2.5)
                 controls.pop()
+                button.visible = True
                 task.cancel()
 
     button = Button("Начать голосование", on_click=start_voting)
