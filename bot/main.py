@@ -3,6 +3,7 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums.parse_mode import ParseMode
+from aiogram.types import ChatIdUnion
 from aiogram.utils.deep_linking import create_start_link
 from beanie import PydanticObjectId
 from fastapi import FastAPI
@@ -13,30 +14,18 @@ from uvicorn import Config, Server
 from env import BOT_TOKEN
 
 from .commands import all_routers
-from .misc.keyboards import player_vote_ikm
 
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 webhook = FastAPI()
 
 
-@webhook.post("/send_message")
-async def send_message(chat_id: int | str, text: str):
-    """Отправляет сообщение"""
+@webhook.post("/send_messages/")
+async def send_messages(chats_ids_messages: dict[ChatIdUnion, str]):
+    """Отправляет сообщения в чаты"""
 
-    try:
-        await bot.send_message(chat_id=chat_id, text=text)
-    except Exception as e:
-        ic(e)
-
-
-@webhook.post("/send_messages")
-async def send_messages(chat_ids: dict[str, str]):
-    """Отправляет сообщения, в json
-    принимает dict[CHAT_ID:str, TEXT:str]"""
-
-    for chat_id in chat_ids:
+    for chat_id, message in chats_ids_messages.items():
         try:
-            await bot.send_message(chat_id=chat_id, text=chat_ids[chat_id])
+            await bot.send_message(chat_id=chat_id, text=message)
         except Exception as e:
             ic(e)
 
