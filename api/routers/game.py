@@ -104,11 +104,7 @@ async def players(game_id: PathGameId) -> list[Player]:
     game = await Game.get(game_id)
     if game is None:
         raise game_not_found
-    return [
-        player
-        for player_id in game.players_ids
-        if (player := await Player.get(player_id)) is not None
-    ]
+    return await game.players()
 
 
 @router.post(

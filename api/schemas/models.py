@@ -55,7 +55,7 @@ class Game(Document):
         self.players_ids.append(player_id)
         await self.save()
 
-    async def _players(self) -> list[Player]:
+    async def players(self) -> list[Player]:
         return [
             player
             for player_id in self.players_ids
@@ -67,7 +67,7 @@ class Game(Document):
         await self.save()
 
     async def stop_voting(self) -> None:
-        players = await self._players()
+        players = await self.players()
         players_votes = (
             (voted, len([... for player in players if player.voted_for_id == voted.id]))
             for voted in players
@@ -96,7 +96,7 @@ class Game(Document):
 
         messages = {
             player_tg_id: question
-            for player_tg_id in [player.tg_id for player in await self._players()]
+            for player_tg_id in [player.tg_id for player in await self.players()]
         }
         assert (glitch := await Player.get(self.glitch_player_id)) is not None
         messages[glitch.tg_id] = glitch_question
