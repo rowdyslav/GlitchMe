@@ -1,9 +1,11 @@
+from beanie import PydanticObjectId
 from fastapi import APIRouter, Response, status
 
 from ..misc import generate_qr, get_game_connect_link
 from ..schemas import (
     ErrorResponsesDict,
     Game,
+    PathGameId,
     PathPlayerTgId,
     Player,
     QueryRoundsCount,
@@ -48,7 +50,7 @@ async def create(rounds_count: QueryRoundsCount) -> Response:
         not_found=True, conflict="игрок уже в игре", unprocessable_entity=True
     ),
 )
-async def connect(game_id: PathPlayerTgId, player_data: Player) -> Player:
+async def connect(game_id: PathGameId, player_data: Player) -> Player:
     """Находит или регистрирует игрока, добавляет ссылку на него в массив игроков объекта Game"""
 
     game = await Game.get(game_id)
@@ -56,9 +58,12 @@ async def connect(game_id: PathPlayerTgId, player_data: Player) -> Player:
         raise game_not_found
 
     player = await Player.get_or_create(player_data)
+    assert (pid := player.id) is not None
 
-    if player.id in game.players_ids:
+    if pid in game.players_ids:
         raise player_already_connected
+
+    await game.connect(pid)
 
     return player
 
@@ -74,7 +79,7 @@ async def connect(game_id: PathPlayerTgId, player_data: Player) -> Player:
         unprocessable_entity=True,
     ),
 )
-async def start(game_id: PathPlayerTgId) -> Game:
+async def start(game_id: PathGameId) -> Game:
     """Начинает игру, устанавливая объекту Game поле glitch_player_id"""
 
     game = await Game.get(game_id)
@@ -95,7 +100,7 @@ async def start(game_id: PathPlayerTgId) -> Game:
     response_description="Список игроков",
     responses=ErrorResponsesDict(not_found=True),
 )
-async def players(game_id: PathPlayerTgId) -> list[Player]:
+async def players(game_id: PathGameId) -> list[Player]:
     game = await Game.get(game_id)
     if game is None:
         raise game_not_found
@@ -113,7 +118,7 @@ async def players(game_id: PathPlayerTgId) -> list[Player]:
     response_description="response_description",
     responses=ErrorResponsesDict(not_found=True),
 )
-async def start_voting(game_id: PathPlayerTgId) -> Game:
+async def start_voting(game_id: PathGameId) -> Game:
     """Начинает голосование"""
 
     game = await Game.get(game_id)

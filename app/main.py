@@ -54,8 +54,7 @@ async def main(p: Page):
             screen = await index(p)
         pvs.append(
             View(
-                "/",
-                (
+                controls=(
                     SelectionArea(
                         Column(
                             screen,
@@ -63,7 +62,7 @@ async def main(p: Page):
                         )
                     ),
                 ),
-                AppBar(
+                appbar=AppBar(
                     title=Text(
                         TITLE,
                         theme_style=TextThemeStyle.DISPLAY_LARGE,

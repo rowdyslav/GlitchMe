@@ -15,14 +15,14 @@ class Player(Document):
     name: str
     tg_id: Annotated[int, Indexed(unique=True)]
     alive: Optional[bool] = None
-    votes: int = -1
+    voted_for_id: Optional[PydanticObjectId] = None
 
     class Settings:
         name = "players"
 
     @classmethod
     async def get_or_create(cls, data: Self) -> Self:
-        return await cls.find_one(Player.tg_id == player_data.tg_id).upsert(  # type: ignore
+        return await cls.find_one(Player.tg_id == data.tg_id).upsert(  # type: ignore
             {"$set": data.model_dump(exclude={"id"})},
             on_insert=data,
             response_type=UpdateResponse.NEW_DOCUMENT,
@@ -33,6 +33,7 @@ class Game(Document):
     rounds_count: int
     players_ids: list[PydanticObjectId] = []
     glitch_player_id: Optional[PydanticObjectId] = None
+    in_voting: Optional[bool] = None
     rounds_keys: list[str] = []
 
     model_config = ConfigDict(
@@ -62,16 +63,20 @@ class Game(Document):
         ]
 
     async def start_voting(self) -> None:
-        for player in await self._players():
-            player.votes = 0
-            await player.save()
+        self.in_voting = True
+        await self.save()
 
     async def stop_voting(self) -> None:
         players = await self._players()
-        max(players, key=lambda p: p.votes).alive = False
+        players_votes = (
+            (voted, len([... for player in players if player.voted_for_id == voted.id]))
+            for voted in players
+        )
+        max(players_votes, key=lambda v: v[1])[0].alive = False
         for player in players:
-            player.votes = -1
+            player.voted_for_id = None
             await player.save()
+        self.in_voting = False
         await self.next_round()
 
     async def next_round(self) -> None:

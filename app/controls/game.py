@@ -40,11 +40,13 @@ async def game(p: Page) -> tuple[Control, ...] | None:
         old_alive = await names()
         while True:
             await sleep(3)
-            if kicked_player := old_alive - await names():
+            if kicked_player_set := (old_alive - await names()):
                 controls = controls_of(p)
                 controls.append(
                     AlertDialog(
-                        title=Text(f"Игрок {kicked_player.pop()} удален голосованием!")
+                        title=Text(
+                            f"Игрок {kicked_player_set.pop()} удален голосованием!"
+                        )
                     )
                 )
                 await sleep(2.5)
