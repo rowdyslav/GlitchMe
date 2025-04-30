@@ -4,8 +4,10 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 class PlayerVoteCallback(CallbackData, prefix="player"):
-    player_id: int
-
+    tg_id: int
+    alive: int
+    voted_for_id: int
+    name: str
 
 
 def player_vote_ikm(players):
@@ -14,7 +16,7 @@ def player_vote_ikm(players):
             InlineKeyboardButton(
                 text=f"{player['name']}",
                 callback_data=PlayerVoteCallback(
-                    player_id=player['id'],
+                    player_id=player["id"],
                 ).pack(),
             )
         ]

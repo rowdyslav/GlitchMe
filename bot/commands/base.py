@@ -66,19 +66,29 @@ async def players(message: Message):
     await message.answer(pretty_players)
 
 
-@router.message(Command("choice"))
-async def choice(message: Message):
+@router.message(Command("vote"))
+async def vote(message: Message):
     assert (user := message.from_user) is not None
     uid = user.id
     if uid not in players_games_ids:
         await message.answer("Вы не в игре!")
         return
-    players = get_game_players(players_games_ids[uid])
+    players = await get_game_players(players_games_ids[uid])
+    for player in players:
+        if player["tg_id"] == uid:
+            player_alive = player["alive"]
+            player_voted = player["voted_for_id"] is not None
+            if player_voted:
+                await message.answer("Вы уже проголосовали в этом раунде!")
+                return
+            if not player_alive:
+                await message.answer("Вас исключили! Вы не можете голосовать(")
+                return
     await message.answer("Выбирайте с умом", reply_markup=player_vote_ikm(players))
 
 
 @router.callback_query(PlayerVoteCallback.filter(F.name))
-async def vote(query: CallbackQuery, callback_data: PlayerVoteCallback):
+async def vote_callback(query: CallbackQuery, callback_data: PlayerVoteCallback):
     assert (user := query.from_user) is not None
     uid = user.id
 
