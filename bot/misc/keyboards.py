@@ -8,7 +8,7 @@ class PlayerVoteCallback(CallbackData, prefix="player"):
     id: PydanticObjectId
     tg_id: int
     alive: int
-    voted_for_id: int
+    voted_for_id: PydanticObjectId | None
     name: str
 
 
