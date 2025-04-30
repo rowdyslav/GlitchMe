@@ -5,7 +5,7 @@ from beanie import PydanticObjectId
 
 
 class PlayerVoteCallback(CallbackData, prefix="player"):
-    id: PydanticObjectId
+    _id: PydanticObjectId
     tg_id: int
     alive: int
     voted_for_id: PydanticObjectId | None
