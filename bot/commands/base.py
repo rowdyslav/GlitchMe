@@ -74,8 +74,9 @@ async def vote(message: Message):
         await message.answer("Вы не в игре!")
         return
     players = await get_game_players(players_games_ids[uid])
-    for player in players:
+    for i, player in enumerate(players):
         if player["tg_id"] == uid:
+
             player_alive = player["alive"]
             player_voted = player["voted_for_id"] is not None
             if player_voted:
