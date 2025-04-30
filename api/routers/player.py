@@ -1,3 +1,4 @@
+from beanie.operators import In
 from fastapi import APIRouter
 
 from ..schemas import (
@@ -22,7 +23,9 @@ async def vote(player_tg_id: PathPlayerTgId, voted_tg_id: QueryPlayerTgId) -> Pl
         raise player_not_found
 
     game = await Game.find_one(
-        player.id in Game.players_ids and voted.id in Game.players_ids
+        In(player.id, Game.players_ids),
+        In(voted.id, Game.players_ids),
+        # Не работает, переделеать
     )
     if player.alive is None or game is None:
         raise player_not_in_game

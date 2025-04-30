@@ -48,6 +48,9 @@ class Game(Document):
         return super().model_post_init(__context)
 
     async def start(self) -> None:
+        for player in await self.players():
+            player.alive = True
+            await player.save()
         self.glitch_player_id = choice(self.players_ids)
         await self.next_round()
 
@@ -104,5 +107,7 @@ class Game(Document):
         await post_send_messages(messages)
 
     async def stop(self) -> None:
-        # Логика завершения игры
+        for player in await self.players():
+            player.alive = None
+            await player.save()
         await self.delete()
