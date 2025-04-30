@@ -93,7 +93,7 @@ async def vote_callback(query: CallbackQuery, callback_data: PlayerVoteCallback)
     uid = user.id
 
     name = callback_data.name
-    voted_id = callback_data.player_id
+    voted_id = callback_data.tg_id
     alive = callback_data.alive
 
     if alive:
