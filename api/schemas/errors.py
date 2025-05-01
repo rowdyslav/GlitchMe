@@ -11,8 +11,9 @@ player_not_in_game = HTTPException(404, "Игрок не в игре или не
 
 player_already_connected = HTTPException(409, "Игрок уже подключен к игре!")
 not_enough_players = HTTPException(409, "Недостатчно игроков для старта!")
+player_not_alive = HTTPException(409, "Игрок исключен!")
 player_already_voted = HTTPException(409, "Игрок уже проголосовал!")
-player_votes_himself = HTTPException(409, "Игрок голосует сам за себя!")
+player_votes_himself = HTTPException(409, "Игрок голосует за себя!")
 
 
 class HTTPError(BaseModel):

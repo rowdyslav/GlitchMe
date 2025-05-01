@@ -6,7 +6,6 @@ from ..schemas import (
     ErrorResponsesDict,
     Game,
     PathGameId,
-    PathPlayerTgId,
     Player,
     QueryRoundsCount,
     game_not_found,
