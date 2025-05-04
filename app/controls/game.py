@@ -12,7 +12,8 @@ async def game(p: Page) -> tuple[Control, ...] | None:
         p.go("/")
         return
 
-    text = Text("Игроки в игре")
+    round_text = Text(f"Раунд 1")
+    players_text = Text("Игроки в игре")
     row = Row(
         [
             Container(Text(player["name"]))
@@ -40,7 +41,7 @@ async def game(p: Page) -> tuple[Control, ...] | None:
         old_alive = await names()
         while True:
             await sleep(3)
-            if kicked_player_set := (old_alive - await names()):
+            if kicked_player_set := (old_alive - (now_alive := await names())):
                 controls = controls_of(p)
                 controls.append(
                     AlertDialog(
@@ -51,12 +52,14 @@ async def game(p: Page) -> tuple[Control, ...] | None:
                 )
                 await sleep(2.5)
                 controls.pop()
+                controls[0].value = f"Раунд {len(now_alive)}"
                 button.visible = True
                 task.cancel()
 
     button = Button("Начать голосование", on_click=start_voting)
     return (
-        text,
+        round_text,
+        players_text,
         row,
         button,
     )

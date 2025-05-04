@@ -2,7 +2,7 @@ from random import choice, sample
 from typing import Annotated, Any, Optional, Self
 
 from beanie import Document, Indexed, PydanticObjectId, UpdateResponse
-from pydantic import ConfigDict
+from beanie.operators import In, Set
 
 from config import ROUNDS_QUESTIONS
 
@@ -22,7 +22,7 @@ class Player(Document):
 
     @classmethod
     async def get_or_create(cls, data: Self) -> Self:
-        return await cls.find_one(Player.tg_id == data.tg_id).upsert(  # type: ignore
+        return await cls.find_one(cls.tg_id == data.tg_id).upsert(  # type: ignore
             {"$set": data.model_dump(exclude={"id"})},
             on_insert=data,
             response_type=UpdateResponse.NEW_DOCUMENT,
@@ -36,34 +36,28 @@ class Game(Document):
     in_voting: Optional[bool] = None
     rounds_keys: list[str] = []
 
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True,
-    )
-
     class Settings:
         name = "games"
 
     def model_post_init(self, __context: Any) -> None:
-        self.rounds_keys = sample(list(ROUNDS_QUESTIONS), self.rounds_count)
-        return super().model_post_init(__context)
+        if not self.rounds_keys:
+            self.rounds_keys = sample(list(ROUNDS_QUESTIONS), self.rounds_count)
+        super().model_post_init(__context)
 
     async def start(self) -> None:
-        for player in await self.players():
-            player.alive = True
-            await player.save()
+        await Player.find(In(Player.id, self.players_ids)).update_many(
+            Set({Player.alive: True})
+        )
         self.glitch_player_id = choice(self.players_ids)
         await self.next_round()
 
     async def connect(self, player_id: PydanticObjectId):
-        self.players_ids.append(player_id)
-        await self.save()
+        if player_id not in self.players_ids:
+            self.players_ids.append(player_id)
+            await self.save()
 
     async def players(self) -> list[Player]:
-        return [
-            player
-            for player_id in self.players_ids
-            if (player := await Player.get(player_id)) is not None
-        ]
+        return await Player.find(In(Player.id, self.players_ids)).to_list()
 
     async def start_voting(self) -> None:
         self.in_voting = True
@@ -71,15 +65,17 @@ class Game(Document):
 
     async def stop_voting(self) -> None:
         players = await self.players()
-        players_votes = (
-            (voted, len([... for player in players if player.voted_for_id == voted.id]))
-            for voted in players
+        votes: dict[PydanticObjectId, int] = {}
+        for p in players:
+            assert (pvfid := p.voted_for_id) is not None
+            votes[pvfid] = votes.get(pvfid, 0) + 1
+        assert (kicked_player := await Player.get(max(votes.keys()))) is not None
+        await kicked_player.update(Set({Player.alive: False}))
+
+        await Player.find(In(Player.id, self.players_ids)).update_many(
+            Set({Player.voted_for_id: None})
         )
-        max(players_votes, key=lambda v: v[1])[0].alive = False
-        for player in players:
-            player.voted_for_id = None
-            await player.save()
-        self.in_voting = False
+        await self.set({Game.in_voting: False})
         await self.next_round()
 
     async def next_round(self) -> None:
@@ -91,23 +87,19 @@ class Game(Document):
         round_key = self.rounds_keys.pop(0)
         await self.save()
 
-        q = lambda: choice(ROUNDS_QUESTIONS[round_key])
-        question = q()
-        glitch_question = q()
-        while question == glitch_question:
-            glitch_question = q()
+        questions = ROUNDS_QUESTIONS[round_key]
+        question, glitch_question = sample(questions, 2)
 
-        messages = {
-            player_tg_id: question
-            for player_tg_id in [player.tg_id for player in await self.players()]
-        }
-        assert (glitch := await Player.get(self.glitch_player_id)) is not None
+        players = await self.players()
+        messages = {p.tg_id: question for p in players}
+
+        glitch = next(p for p in players if p.id == self.glitch_player_id)
         messages[glitch.tg_id] = glitch_question
 
         await post_send_messages(messages)
 
     async def stop(self) -> None:
-        for player in await self.players():
-            player.alive = None
-            await player.save()
+        await Player.find(In(Player.id, self.players_ids)).update_many(
+            Set({Player.alive: None})
+        )
         await self.delete()
