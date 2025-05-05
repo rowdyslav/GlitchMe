@@ -26,7 +26,7 @@ async def in_game(message: Message) -> bool:
     return True
 
 
-async def get_player_data(message: Message) -> tuple[int, str] | None:
+async def get_player_data(message: Message | CallbackQuery) -> tuple[int, str] | None:
     """Возвращает tg_id и name игрока"""
     if (u := message.from_user) is None:
         return None
@@ -98,10 +98,7 @@ async def vote(message: Message):
 
 @router.callback_query(PlayerVoteCallback.filter())
 async def vote_callback(query: CallbackQuery, callback_data: PlayerVoteCallback):
-    if (
-        type(message := query.message) is not Message
-        or (data := await get_player_data(message)) is None
-    ):
+    if (data := await get_player_data(query)) is None:
         return
 
     if not callback_data.alive:
