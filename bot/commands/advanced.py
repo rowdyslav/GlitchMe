@@ -107,6 +107,8 @@ async def vote_callback(query: CallbackQuery, callback_data: PlayerVoteCallback)
     if not callback_data.alive:
         await query.answer(_["dead_vote_attempt"])
         return
+    from icecream import ic
 
+    ic(data)
     await post_player_vote(data[0], callback_data.tg_id)
     await query.answer(_["vote_accepted"].format(name=callback_data.name))
