@@ -31,4 +31,6 @@ def player_vote_ikm(players: list[dict]):
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
 
 
-vote_rkm = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="/vote")]])
+vote_rkm = ReplyKeyboardMarkup(
+    keyboard=[[KeyboardButton(text="/vote")]], resize_keyboard=True
+)
