@@ -107,5 +107,8 @@ async def vote_callback(query: CallbackQuery, callback_data: PlayerVoteCallback)
     from icecream import ic
 
     ic(data)
-    await post_player_vote(data[0], callback_data.tg_id)
-    await query.answer(_["vote_accepted"].format(name=callback_data.name))
+    response_text = await post_player_vote(data[0], callback_data.tg_id)
+    if response_text == 200:
+        await query.answer(_["vote_accepted"].format(name=callback_data.name))
+    elif response_text == 409:
+        await query.answer(response_text)

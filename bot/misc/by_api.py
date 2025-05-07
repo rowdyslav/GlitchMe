@@ -19,6 +19,7 @@ async def get_game_players(game_id: str) -> list:
 
 async def post_player_vote(player_tg_id: int, voted_tg_id: int) -> None:
     async with ClientSession() as session:
-        await session.post(
+        async with session.post(
             f"{API_URL}/player/vote/{player_tg_id}", params={"voted_tg_id": voted_tg_id}
-        )
+        )as response:
+            return  await response.text()
