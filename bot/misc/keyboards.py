@@ -1,6 +1,11 @@
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+)
 from beanie import PydanticObjectId
 
 
@@ -24,3 +29,6 @@ def player_vote_ikm(players: list[dict]):
     ]
 
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+
+
+vote_rkm = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="/vote")]])

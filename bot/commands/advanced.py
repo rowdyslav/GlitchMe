@@ -3,13 +3,15 @@ from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.deep_linking import decode_payload
 
+
 from ..misc import ADVANCED as _
 from ..misc import (
     PlayerVoteCallback,
     get_game_players,
     player_vote_ikm,
     post_game_connect,
-    post_player_vote,
+    patch_player_vote,
+    vote_rkm,
 )
 
 router = Router()
@@ -45,7 +47,9 @@ async def start_deeplink(message: Message, command: CommandObject):
 
     await post_game_connect(game_id, user_id, player_name)
     users_games[user_id] = game_id
-    await message.answer(_["connected"].format(name=player_name, game_id=game_id))
+    await message.answer(
+        _["connected"].format(name=player_name, game_id=game_id), reply_markup=vote_rkm
+    )
 
 
 @router.message(Command("players"))
@@ -107,8 +111,12 @@ async def vote_callback(query: CallbackQuery, callback_data: PlayerVoteCallback)
     from icecream import ic
 
     ic(data)
-    response_status = await post_player_vote(data[0], callback_data.tg_id)
+    response_status = await patch_player_vote(data[0], callback_data.tg_id)
     if response_status == 200:
         await query.answer(_["vote_accepted"].format(name=callback_data.name))
+        if type(message := query.message) is Message:
+            await message.answer(_["vote_accepted"].format(name=callback_data.name))
+            await message.delete()
+
     elif response_status == 409:
         await query.answer(str(response_status))
