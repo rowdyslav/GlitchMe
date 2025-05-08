@@ -31,11 +31,15 @@ async def game(p: Page) -> tuple[Control, ...] | None:
         global task
 
         async def names() -> set[str]:
-            return {
-                player["name"]
-                for player in await get_game_players(game_id)
-                if player["alive"]
-            }
+            from icecream import ic
+
+            return ic(
+                {
+                    player["name"]
+                    for player in await get_game_players(game_id)
+                    if player["alive"]
+                }
+            )
 
         button.visible = False
         old_alive = await names()

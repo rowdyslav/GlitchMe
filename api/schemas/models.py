@@ -81,7 +81,7 @@ class Game(Document):
         await Player.find(In(Player.id, self.players_ids)).update_many(
             Set({Player.voted_for_id: None})
         )
-        await self.set({Game.in_voting: False})
+        await self.set({Game.in_voting: False}, skip_sync=True)
         await self.next_round()
 
     async def next_round(self) -> None:
