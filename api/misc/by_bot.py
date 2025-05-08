@@ -17,9 +17,3 @@ async def post_send_messages(messages: dict[int, str]):
     async with ClientSession() as session:
         async with session.post(f"{BOT_WEBHOOK_URL}/send_messages/", json=messages):
             return
-
-
-async def trace_voting_started():
-    async with ClientSession() as session:
-        async with session.request("trace", f"{BOT_WEBHOOK_URL}/voting_started/"):
-            return

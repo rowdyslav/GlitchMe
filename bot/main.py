@@ -29,16 +29,11 @@ async def game_connect_link(game_id: PydanticObjectId) -> AnyUrl:
 @webhook.post("/send_messages/")
 async def send_messages(chats_ids_messages: dict[ChatIdUnion, str]):
     """Отправляет сообщения в чаты"""
-
     for chat_id, message in chats_ids_messages.items():
         try:
             await bot.send_message(chat_id=chat_id, text=message)
         except Exception as e:
             ic(e)
-
-
-@webhook.trace("/voting_started/")
-async def voting_started(): ...
 
 
 async def run_bot():
