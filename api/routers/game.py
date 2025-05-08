@@ -1,4 +1,3 @@
-from beanie import PydanticObjectId
 from fastapi import APIRouter, Response, status
 
 from ..misc import generate_qr, get_game_connect_link
@@ -41,7 +40,7 @@ async def create(rounds_count: QueryRoundsCount) -> Response:
     )
 
 
-@router.post(
+@router.patch(
     "/connect/{game_id}",
     summary="Подключить игрока",
     response_description="Обновленная запись игры из бд",

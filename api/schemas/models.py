@@ -48,7 +48,7 @@ class Game(Document):
         await Player.find(In(Player.id, self.players_ids)).update_many(
             Set({Player.alive: True})
         )
-        self.glitch_player_id = choice(self.players_ids)
+        await self.update(Set({Game.glitch_player_id: choice(self.players_ids)}))
         await self.next_round()
 
     async def connect(self, player_id: PydanticObjectId):
@@ -60,15 +60,14 @@ class Game(Document):
         return await Player.find(In(Player.id, self.players_ids)).to_list()
 
     async def start_voting(self) -> None:
-        self.in_voting = True
-        await self.save()
+        await self.set({Game.in_voting: True})
 
     async def stop_voting(self) -> None:
         players = await self.players()
         votes: dict[PydanticObjectId, int] = {}
         for p in players:
-            assert (pvfid := p.voted_for_id) is not None
-            votes[pvfid] = votes.get(pvfid, 0) + 1
+            assert (voted_id := p.voted_for_id) is not None
+            votes[voted_id] = votes.get(voted_id, 0) + 1
         assert (kicked_player := await Player.get(max(votes.keys()))) is not None
         await kicked_player.update(Set({Player.alive: False}))
 

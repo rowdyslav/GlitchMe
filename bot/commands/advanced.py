@@ -3,14 +3,13 @@ from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.deep_linking import decode_payload
 
-
 from ..misc import ADVANCED as _
 from ..misc import (
     PlayerVoteCallback,
     get_game_players,
-    player_vote_ikm,
-    post_game_connect,
+    patch_game_connect,
     patch_player_vote,
+    player_vote_ikm,
     vote_rkm,
 )
 
@@ -45,7 +44,7 @@ async def start_deeplink(message: Message, command: CommandObject):
     user_id, player_name = user_data
     game_id = decode_payload(payload)
 
-    await post_game_connect(game_id, user_id, player_name)
+    await patch_game_connect(game_id, user_id, player_name)
     users_games[user_id] = game_id
     await message.answer(
         _["connected"].format(name=player_name, game_id=game_id), reply_markup=vote_rkm

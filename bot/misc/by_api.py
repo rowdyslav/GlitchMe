@@ -3,9 +3,9 @@ from aiohttp import ClientSession
 from env import API_URL
 
 
-async def post_game_connect(game_id: str, player_tg_id: int, player_name: str) -> None:
+async def patch_game_connect(game_id: str, player_tg_id: int, player_name: str) -> None:
     async with ClientSession() as session:
-        await session.post(
+        await session.patch(
             f"{API_URL}/game/connect/{game_id}",
             json={"name": player_name, "tg_id": player_tg_id},
         )
