@@ -31,7 +31,7 @@ async def game_connect_link(game_id: PydanticObjectId) -> AnyUrl:
 @webhook.post("/send_messages/")
 async def send_messages(chats_ids_messages: dict[ChatIdUnion, str]):
     """Отправляет сообщения в чаты"""
-    start_voting = all([not i[1] for i in chats_ids_messages.items()])
+    start_voting = all([i[1] is None for i in chats_ids_messages.items()])
     for chat_id, message in chats_ids_messages.items():
         try:
             if start_voting:
