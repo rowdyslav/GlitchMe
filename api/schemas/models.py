@@ -40,7 +40,7 @@ class Game(Document):
         name = "games"
 
     def model_post_init(self, __context: Any) -> None:
-        if not self.rounds_keys:
+        if len(self.rounds_keys) != self.rounds_count:
             self.rounds_keys = sample(list(ROUNDS_QUESTIONS), self.rounds_count)
         super().model_post_init(__context)
 
@@ -61,15 +61,22 @@ class Game(Document):
 
     async def start_voting(self) -> None:
         await self.set({Game.in_voting: True})
+        await post_send_messages(
+            {player.tg_id: None for player in await self.players()}
+        )
 
     async def stop_voting(self) -> None:
         players = await self.players()
+
         votes: dict[PydanticObjectId, int] = {}
         for p in players:
             assert (voted_id := p.voted_for_id) is not None
             votes[voted_id] = votes.get(voted_id, 0) + 1
+
         assert (kicked_player := await Player.get(max(votes.keys()))) is not None
         await kicked_player.update(Set({Player.alive: False}))
+        if kicked_player.id == self.glitch_player_id:
+            await self.stop()
 
         await Player.find(In(Player.id, self.players_ids)).update_many(
             Set({Player.voted_for_id: None})

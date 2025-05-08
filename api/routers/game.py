@@ -98,12 +98,23 @@ async def start(game_id: PathGameId) -> Game:
     response_description="Список записей игроков из бд",
     responses=ErrorResponsesDict(not_found="игра", unprocessable_entity=True),
 )
-async def players(game_id: PathGameId) -> list[Player]:
-    """Получает список игроков"""
+async def players(game_id: PathGameId, response: Response) -> list[Player] | Response:
+    """Получает список игроков или победителей, если игра завершена"""
     game = await Game.get(game_id)
     if game is None:
         raise game_not_found
-    return await game.players()
+    players = await game.players()
+    if game.rounds_keys:
+        return players
+
+    response.headers["game_ended"] = ""
+    winners = []
+    glitch = next(player for player in players if player.id == game.glitch_player_id)
+    if glitch.alive:
+        winners.append(glitch)
+    else:
+        winners.extend((player for player in players if player.alive))
+    return winners
 
 
 @router.post(
