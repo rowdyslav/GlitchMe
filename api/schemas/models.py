@@ -6,7 +6,7 @@ from beanie.operators import In, Set
 
 from config import ROUNDS_QUESTIONS
 
-from ..misc import post_send_messages
+from ..misc import post_send_messages, trace_voting_started
 
 
 class Player(Document):
@@ -61,6 +61,7 @@ class Game(Document):
 
     async def start_voting(self) -> None:
         await self.set({Game.in_voting: True})
+        await trace_voting_started()
 
     async def stop_voting(self) -> None:
         players = await self.players()

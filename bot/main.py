@@ -37,7 +37,7 @@ async def send_messages(chats_ids_messages: dict[ChatIdUnion, str]):
             ic(e)
 
 
-@webhook.trace("/voting_started")
+@webhook.trace("/voting_started/")
 async def voting_started(): ...
 
 
