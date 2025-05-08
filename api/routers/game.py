@@ -104,7 +104,7 @@ async def players(game_id: PathGameId, response: Response) -> list[Player] | Res
     if game is None:
         raise game_not_found
     players = await game.players()
-    if game.rounds_keys:
+    if game.rounds_keys or (game.in_voting or game.in_voting is None):
         return players
 
     response.headers["game_ended"] = ""

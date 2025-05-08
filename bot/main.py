@@ -36,7 +36,11 @@ async def send_messages(
     no_messages = all([i[1] is None for i in chats_ids_messages.items()])
     if no_messages:
         messages_kwargs = [
-            {"chat_id": f"{chat_id}", "text": _["start_vote"], "reply_markup": vote_rkm}
+            {
+                "chat_id": f"{chat_id}",
+                "text": _["voting_started"],
+                "reply_markup": vote_rkm,
+            }
             for chat_id in chats_ids_messages
         ]
     else:
