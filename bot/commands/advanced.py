@@ -78,11 +78,15 @@ async def vote(message: Message):
 
     user_id = user_data[0]
     game_players = await get_game_players(users_games[user_id])
+    game_started = any([i["alive"] for i in game_players])
     current_player = next((p for p in game_players if p["tg_id"] == user_id), None)
 
     if not current_player:
         await message.answer(_["not_in_game"])
         return
+
+    if not game_started:
+        await message.answer(_["game_not_started"])
 
     if current_player["voted_for_id"] is not None:
         await message.answer(_["already_voted"])
