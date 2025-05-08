@@ -19,6 +19,13 @@ bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTM
 webhook = FastAPI()
 
 
+@webhook.get("/game_connect_link", response_model=AnyUrl)
+async def game_connect_link(game_id: PydanticObjectId) -> AnyUrl:
+    """Возвращает ссылку для подключения к игре"""
+
+    return AnyUrl(await create_start_link(bot, str(game_id), encode=True))
+
+
 @webhook.post("/send_messages/")
 async def send_messages(chats_ids_messages: dict[ChatIdUnion, str]):
     """Отправляет сообщения в чаты"""
@@ -30,11 +37,8 @@ async def send_messages(chats_ids_messages: dict[ChatIdUnion, str]):
             ic(e)
 
 
-@webhook.get("/game_connect_link", response_model=AnyUrl)
-async def game_connect_link(game_id: PydanticObjectId) -> AnyUrl:
-    """Возвращает ссылку для подключения к игре"""
-
-    return AnyUrl(await create_start_link(bot, str(game_id), encode=True))
+@webhook.trace("/voting_started")
+async def voting_started(): ...
 
 
 async def run_bot():
