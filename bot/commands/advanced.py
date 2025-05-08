@@ -10,7 +10,6 @@ from ..misc import (
     patch_game_connect,
     patch_player_vote,
     player_vote_ikm,
-    vote_rkm,
 )
 
 router = Router()
@@ -46,9 +45,7 @@ async def start_deeplink(message: Message, command: CommandObject):
 
     await patch_game_connect(game_id, user_id, player_name)
     users_games[user_id] = game_id
-    await message.answer(
-        _["connected"].format(name=player_name, game_id=game_id), reply_markup=vote_rkm
-    )
+    await message.answer(_["connected"].format(name=player_name, game_id=game_id))
 
 
 @router.message(Command("players"))

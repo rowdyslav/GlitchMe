@@ -14,6 +14,8 @@ from uvicorn import Config, Server
 from env import BOT_TOKEN
 
 from .commands import all_routers
+from .misc import vote_rkm
+from .misc import MAIN as _
 
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 webhook = FastAPI()
@@ -29,9 +31,17 @@ async def game_connect_link(game_id: PydanticObjectId) -> AnyUrl:
 @webhook.post("/send_messages/")
 async def send_messages(chats_ids_messages: dict[ChatIdUnion, str]):
     """Отправляет сообщения в чаты"""
+    start_voting = all([not i[1] for i in chats_ids_messages.items()])
     for chat_id, message in chats_ids_messages.items():
         try:
-            await bot.send_message(chat_id=chat_id, text=message)
+            if start_voting:
+                await bot.send_message(
+                    chat_id=chat_id,
+                    text=_["start_vote"],
+                    reply_markup=vote_rkm
+                )
+            else:
+                await bot.send_message(chat_id=chat_id, text=message)
         except Exception as e:
             ic(e)
 
