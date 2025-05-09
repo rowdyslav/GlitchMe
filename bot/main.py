@@ -15,7 +15,7 @@ from env import BOT_TOKEN
 
 from .commands import all_routers
 from .misc import MAIN as _
-from .misc import vote_rkm
+from .misc import vote_rkm, player_vote_ikm
 
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 webhook = FastAPI()
@@ -29,24 +29,37 @@ async def game_connect_link(game_id: PydanticObjectId) -> AnyUrl:
 
 
 @webhook.post("/send_messages/")
-async def send_messages(
-    chats_ids_messages: dict[ChatIdUnion, str] | dict[ChatIdUnion, None],
-):
-    """Отправляет сообщения в чаты"""
-    no_messages = all([i[1] is None for i in chats_ids_messages.items()])
+async def send_messages(players_data: list[tuple],):
+    """Отправляет сообщения в чаты
+    tuple[tg_id, name, alive, message]"""
+
+    no_messages = all([i[3] is None for i in players_data.items()])
     if no_messages:
-        messages_kwargs = [
-            {
-                "chat_id": f"{chat_id}",
-                "text": _["voting_started"],
-                "reply_markup": vote_rkm,
-            }
-            for chat_id in chats_ids_messages
-        ]
+        messages_kwargs = []
+        for player in players_data:
+            tg_id, alive = player[0], player[2]
+            other_players = [
+                {
+                "tg_id" : p[0],
+                "name" : p[1],
+                "alive" : p[2]
+                }for p in players_data if p["tg_id"] != tg_id
+            ]
+
+            if not alive:
+                await messages_kwargs.append({"text": _["dead_cant_vote"]})
+            else:
+                messages_kwargs.append(
+                    {
+                        "chat_id": f"{tg_id}",
+                        "text": _["vote_instruction"],
+                        "reply_markup": player_vote_ikm(other_players), 
+                    }
+                )
     else:
         messages_kwargs = [
-            {"chat_id": f"{chat_id}", "text": message, "reply_markup": vote_rkm}
-            for chat_id, message in chats_ids_messages.items()
+            {"chat_id": f"{tg_id}", "text": message, "reply_markup": vote_rkm}
+            for tg_id, name, alive, message in players_data
         ]
     for message_kwargs in messages_kwargs:
         await bot.send_message(**message_kwargs)
