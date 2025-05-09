@@ -28,7 +28,6 @@ FONT = ("RubikWetPaint-Regular", "rubikwetpaint", "ofl")
 async def main(p: Page):
     pvs = p.views
 
-    p.title = TITLE
     p.bgcolor = Colors.with_opacity(0.1, Colors.WHITE)
     p.fonts = {
         FONT[0]: "https://raw.githubusercontent.com/google/fonts/master/"
@@ -41,6 +40,7 @@ async def main(p: Page):
     )
 
     async def route_change(_: RouteChangeEvent | ControlEvent):
+        p.title = TITLE
         pr = p.route
         if pvs[-1].route == pr:
             return
@@ -59,6 +59,8 @@ async def main(p: Page):
                         Column(
                             screen,
                             horizontal_alignment=CrossAxisAlignment.CENTER,
+                            spacing=25,
+                            expand=True,
                         )
                     ),
                 ),
