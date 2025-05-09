@@ -13,7 +13,9 @@ async def get_game_connect_link(game_id: PydanticObjectId) -> AnyUrl:
             return AnyUrl((await response.text()).strip('"'))
 
 
-async def post_send_messages(messages: dict[int, str] | dict[int, None]):
+async def post_send_messages(
+    messages: list[tuple[str, int, bool]] | list[tuple[int, str, None]],
+):
     async with ClientSession() as session:
         async with session.post(f"{BOT_WEBHOOK_URL}/send_messages/", json=messages):
             return

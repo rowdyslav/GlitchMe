@@ -3,11 +3,9 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums.parse_mode import ParseMode
-from aiogram.types import ChatIdUnion
 from aiogram.utils.deep_linking import create_start_link
 from beanie import PydanticObjectId
 from fastapi import FastAPI
-from icecream import ic
 from pydantic import AnyUrl
 from uvicorn import Config, Server
 
@@ -15,7 +13,7 @@ from env import BOT_TOKEN
 
 from .commands import all_routers
 from .misc import MAIN as _
-from .misc import vote_rkm, player_vote_ikm
+from .misc import player_vote_ikm
 
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 webhook = FastAPI()
@@ -29,40 +27,38 @@ async def game_connect_link(game_id: PydanticObjectId) -> AnyUrl:
 
 
 @webhook.post("/send_messages/")
-async def send_messages(players_data: list[tuple],):
+async def send_messages(
+    players_data: list[tuple[str, int, bool]] | list[tuple[int, str, None]],
+):
     """Отправляет сообщения в чаты
-    tuple[tg_id, name, alive, message]"""
+    tuple[name, tg_id, alive] | tuple[tg_id, message, _]"""
 
-    no_messages = all([i[3] is None for i in players_data.items()])
+    no_messages = all([player[2] is not None for player in players_data])
     if no_messages:
-        messages_kwargs = []
-        for player in players_data:
-            tg_id, alive = player[0], player[2]
+        messages_kwargs: list[dict] = []
+        for tg_id in map(lambda x: x[1], players_data):
             other_players = [
-                {
-                "tg_id" : p[0],
-                "name" : p[1],
-                "alive" : p[2]
-                }for p in players_data if p["tg_id"] != tg_id
+                {"name": player[0], "tg_id": player[1], "alive": player[2]}
+                for player in players_data
+                if player[1] != tg_id
             ]
 
-            if not alive:
-                await messages_kwargs.append({"text": _["dead_cant_vote"]})
-            else:
-                messages_kwargs.append(
-                    {
-                        "chat_id": f"{tg_id}",
-                        "text": _["vote_instruction"],
-                        "reply_markup": player_vote_ikm(other_players), 
-                    }
-                )
+            messages_kwargs.append(
+                {
+                    "chat_id": tg_id,
+                    "text": _["vote_instruction"],
+                    "reply_markup": player_vote_ikm(other_players),
+                }
+            )
+
     else:
         messages_kwargs = [
-            {"chat_id": f"{tg_id}", "text": message, "reply_markup": vote_rkm}
-            for tg_id, name, alive, message in players_data
+            {"chat_id": f"{tg_id}", "text": message}
+            for tg_id, message, _ in players_data
         ]
-    for message_kwargs in messages_kwargs:
-        await bot.send_message(**message_kwargs)
+
+    for m_kwargs in messages_kwargs:
+        await bot.send_message(**m_kwargs)
 
 
 async def run_bot():

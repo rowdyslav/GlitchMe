@@ -62,7 +62,11 @@ class Game(Document):
     async def start_voting(self) -> None:
         await self.set({Game.in_voting: True})
         await post_send_messages(
-            {player.tg_id: None for player in await self.players()}
+            [
+                (player.name, player.tg_id, player.alive)
+                for player in await self.players()
+                if player.alive
+            ]
         )
 
     async def stop_voting(self) -> None:
@@ -97,10 +101,14 @@ class Game(Document):
         question, glitch_question = sample(questions, 2)
 
         players = await self.players()
-        messages = {p.tg_id: question for p in players}
-
-        glitch = next(p for p in players if p.id == self.glitch_player_id)
-        messages[glitch.tg_id] = glitch_question
+        messages = [
+            (
+                p.tg_id,
+                question if p.id != self.glitch_player_id else glitch_question,
+                None,
+            )
+            for p in players
+        ]
 
         await post_send_messages(messages)
 
