@@ -41,19 +41,14 @@ async def game(p: Page) -> tuple[Control, ...] | None:
 
     async def wait_voting_end():
         global task
-        from icecream import ic
-
-        ic(1)
 
         button.visible = False
         p.update()
         old_alive = (await names())[0]
         while True:
             await sleep(3)
-            ic(2)
             now_alive, game_ended = await names()
             if kicked_player_set := old_alive - now_alive:
-                ic(old_alive, now_alive)
                 if game_ended:
                     p.open(
                         AlertDialog(
@@ -61,7 +56,7 @@ async def game(p: Page) -> tuple[Control, ...] | None:
                                 lambda x: Column(
                                     [
                                         Text(value)
-                                        for value in now_alive.union({f"Победил{x}:"})
+                                        for value in now_alive.union({f"Победил{x}"})
                                     ]
                                 )
                             )("и игроки" if len(now_alive) > 1 else " Глюк")
