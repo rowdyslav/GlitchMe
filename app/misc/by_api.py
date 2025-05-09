@@ -24,10 +24,10 @@ async def post_game_start(game_id: PydanticObjectId) -> None:
             return await response.json()
 
 
-async def get_game_players(game_id: PydanticObjectId) -> list[dict]:
+async def get_game_players(game_id: PydanticObjectId) -> tuple[list[dict], bool]:
     async with ClientSession() as session:
         async with session.get(f"{API_URL}/game/players/{game_id}") as response:
-            return await response.json()
+            return await response.json(), "game_ended" in response.headers
 
 
 async def post_game_start_voting(game_id: PydanticObjectId):

@@ -1,6 +1,16 @@
 from asyncio import create_task, sleep
 
-from flet import AlertDialog, Button, Container, Control, ControlEvent, Page, Row, Text
+from flet import (
+    AlertDialog,
+    Button,
+    Column,
+    Control,
+    ControlEvent,
+    MainAxisAlignment,
+    Page,
+    Row,
+    Text,
+)
 
 from ..misc import controls_of, get_game_players, post_game_start_voting
 
@@ -14,13 +24,15 @@ async def game(p: Page) -> tuple[Control, ...] | None:
 
     round_text = Text(f"Раунд 1")
     players_text = Text("Игроки в игре")
-    row = Row(
-        [
-            Container(Text(player["name"]))
-            for player in await get_game_players(game_id)
-            if player["alive"]
-        ]
-    )
+
+    async def names() -> tuple[set[str], bool]:
+        players, game_ended = await get_game_players(game_id)
+        return (
+            {player["name"] for player in players if player["alive"]},
+            game_ended,
+        )
+
+    row = Row([Text(name) for name in (await names())[0]], MainAxisAlignment.CENTER)
 
     async def start_voting(_: ControlEvent):
         global task
@@ -29,36 +41,47 @@ async def game(p: Page) -> tuple[Control, ...] | None:
 
     async def wait_voting_end():
         global task
+        from icecream import ic
 
-        async def names() -> set[str]:
-            from icecream import ic
-
-            return ic(
-                {
-                    player["name"]
-                    for player in await get_game_players(game_id)
-                    if player["alive"]
-                }
-            )
+        ic(1)
 
         button.visible = False
-        old_alive = await names()
+        p.update()
+        old_alive = (await names())[0]
         while True:
             await sleep(3)
-            if kicked_player_set := (old_alive - (now_alive := await names())):
-                kicked_player = kicked_player_set.pop()
-                controls = controls_of(p)
-                controls[2].controls = [Container(Text(name)) for name in now_alive]
-                controls.append(
+            ic(2)
+            now_alive, game_ended = await names()
+            if kicked_player_set := old_alive - now_alive:
+                ic(old_alive, now_alive)
+                if game_ended:
+                    p.open(
+                        AlertDialog(
+                            title=(
+                                lambda x: Column(
+                                    [
+                                        Text(value)
+                                        for value in now_alive.union({f"Победил{x}:"})
+                                    ]
+                                )
+                            )("и игроки" if len(now_alive) > 1 else " Глюк")
+                        )
+                    )
+                else:
+                    controls = controls_of(p)
+                    controls[0].value = f"Раунд {len(now_alive)}"
+                    controls[2].controls = [Text(name) for name in now_alive]
+                    button.visible = True
+                    p.update()
+                p.open(
                     AlertDialog(
-                        title=Text(f"Игрок {kicked_player} удален голосованием!")
+                        title=Text(
+                            f"Игрок {kicked_player_set.pop()} удален голосованием!"
+                        )
                     )
                 )
-                await sleep(2.5)
-                controls.pop()
-                controls[0].value = f"Раунд {len(now_alive)}"
-                button.visible = True
                 task.cancel()
+                break
 
     button = Button("Начать голосование", on_click=start_voting)
     return (

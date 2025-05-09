@@ -46,7 +46,7 @@ async def lobby(p: Page) -> tuple[Text, Image, Text, Column] | None:
         while True:
             await sleep(3)
             player_names = [
-                player["name"] for player in await get_game_players(game_id)
+                player["name"] for player in (await get_game_players(game_id))[0]
             ]
             players_count = len(player_names)
 
@@ -62,11 +62,12 @@ async def lobby(p: Page) -> tuple[Text, Image, Text, Column] | None:
             ]
 
             if players_count >= game_players_min_count and len(controls) > 3:
-                task.cancel()
                 controls[0].value = controls[2].value
                 controls[1] = controls[3]
                 del controls[2:]
                 controls.append(Button("Старт!", on_click=start))
+                task.cancel()
+                break
 
             p.update()
 

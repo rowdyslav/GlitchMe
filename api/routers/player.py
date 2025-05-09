@@ -56,7 +56,13 @@ async def vote(player_tg_id: PathPlayerTgId, voted_tg_id: QueryPlayerTgId) -> Pl
     player.voted_for_id = voted.id
     await player.save()
 
-    if all((player.voted_for_id is not None for player in await game.players())):
+    if all(
+        (
+            player.voted_for_id is not None
+            for player in await game.players()
+            if player.alive
+        )
+    ):
         await game.stop_voting()
 
     return player

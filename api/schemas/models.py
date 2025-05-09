@@ -1,3 +1,4 @@
+from asyncio import create_task, sleep
 from random import choice, sample
 from typing import Annotated, Any, Optional, Self
 
@@ -48,7 +49,8 @@ class Game(Document):
         await Player.find(In(Player.id, self.players_ids)).update_many(
             Set({Player.alive: True})
         )
-        await self.update(Set({Game.glitch_player_id: choice(self.players_ids)}))
+        await self.set({Game.glitch_player_id: choice(self.players_ids)})
+        await self.set({Game.in_voting: False})
         await self.next_round()
 
     async def connect(self, player_id: PydanticObjectId):
@@ -78,14 +80,13 @@ class Game(Document):
             votes[voted_id] = votes.get(voted_id, 0) + 1
 
         assert (kicked_player := await Player.get(max(votes.keys()))) is not None
-        await kicked_player.update(Set({Player.alive: False}))
-        if kicked_player.id == self.glitch_player_id:
-            await self.stop()
-
+        await kicked_player.set({Player.alive: False})
         await Player.find(In(Player.id, self.players_ids)).update_many(
             Set({Player.voted_for_id: None})
         )
-        await self.set({Game.in_voting: False}, skip_sync=True)
+        await self.set({Game.in_voting: False})
+        if kicked_player.id == self.glitch_player_id:
+            await self.stop()
         await self.next_round()
 
     async def next_round(self) -> None:
@@ -113,7 +114,12 @@ class Game(Document):
         await post_send_messages(messages)
 
     async def stop(self) -> None:
-        await Player.find(In(Player.id, self.players_ids)).update_many(
-            Set({Player.alive: None})
-        )
-        await self.delete()
+        async def _():
+            await sleep(60)
+            await Player.find(In(Player.id, self.players_ids)).update_many(
+                Set({Player.alive: None})
+            )
+            await self.delete()
+
+        create_task(_())
+        return

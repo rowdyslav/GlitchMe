@@ -98,23 +98,25 @@ async def start(game_id: PathGameId) -> Game:
     response_description="Список записей игроков из бд",
     responses=ErrorResponsesDict(not_found="игра", unprocessable_entity=True),
 )
-async def players(game_id: PathGameId, response: Response) -> list[Player] | Response:
+async def players(game_id: PathGameId, response: Response) -> list[Player]:
     """Получает список игроков или победителей, если игра завершена"""
     game = await Game.get(game_id)
     if game is None:
         raise game_not_found
     players = await game.players()
-    if game.rounds_keys or (game.in_voting or game.in_voting is None):
+
+    if game.in_voting is None:
+        return players
+
+    alive_players = [p for p in players if p.alive]
+    glitch = next(p for p in players if p.id == game.glitch_player_id)
+    ga = glitch.alive
+
+    if ga and len(alive_players) > 2:
         return players
 
     response.headers["game_ended"] = ""
-    winners = []
-    glitch = next(player for player in players if player.id == game.glitch_player_id)
-    if glitch.alive:
-        winners.append(glitch)
-    else:
-        winners.extend((player for player in players if player.alive))
-    return winners
+    return [glitch] if ga else alive_players
 
 
 @router.post(
