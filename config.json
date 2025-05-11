@@ -1,7 +1,7 @@
 {
     "qr_background_url": "https://media.tenor.com/0hfgAxD0ZlcAAAAj/rowdyslav.gif",
     "rounds_questions": {
-        "Computer_errors": [
+        "desktop_errors": [
             "Ошибка 404",
             "Синий экран",
             "Не загружается Windows",
@@ -11,7 +11,7 @@
             "Приложение не отвечает",
             "Программа вылетает"
         ],
-        "Computer_components": [
+        "computer_components": [
             "Видеокарта",
             "Процессор",
             "Оперативная память",
@@ -21,7 +21,7 @@
             "Вентилятор охлаждения",
             "Жёсткий диск HDD"
         ],
-        "Programs_and_apps": [
+        "software": [
             "Антивирус",
             "Файрвол",
             "Офисный пакет",
@@ -31,7 +31,7 @@
             "Мессенджер",
             "Torrent-клиент"
         ],
-        "Mobile_devices": [
+        "smartphone_problems": [
             "Не заряжается телефон",
             "SIM-карта не определена",
             "Телефон перегревается",
@@ -41,7 +41,7 @@
             "Не ловит Wi-Fi",
             "Не устанавливается обновление"
         ],
-        "Smart_home_and_IoT": [
+        "smart_home_devices": [
             "Умная лампочка",
             "Датчик движения",
             "Голосовой ассистент",
@@ -51,7 +51,7 @@
             "IP-камера",
             "Мостик Zigbee"
         ],
-        "Gaming_devices": [
+        "gaming_devices": [
             "Геймерский монитор",
             "Механическая клавиатура",
             "Игровая гарнитура",
@@ -61,7 +61,7 @@
             "FPS-лимитер",
             "Поддержка HDR"
         ],
-        "Networks_and_Internet": [
+        "network": [
             "Wi-Fi не подключается",
             "Медленный интернет",
             "Пинг выше нормы",
@@ -71,7 +71,7 @@
             "Сеть ограничена",
             "IP-конфликт"
         ],
-        "Photo_and_video_equipment": [
+        "videography_equipment": [
             "Цифровая камера",
             "GoPro",
             "Штатив",
@@ -81,7 +81,7 @@
             "Стедикам",
             "Карта памяти"
         ],
-        "Clouds_and_data_storage": [
+        "clouds": [
             "Google Drive",
             "OneDrive",
             "Dropbox",
@@ -91,7 +91,7 @@
             "Хранилище NAS",
             "Автосохранение"
         ],
-        "Servers_and_IT_infrastructure": [
+        "server_problems": [
             "Сервер не отвечает",
             "Ошибка 500",
             "Падение производительности",

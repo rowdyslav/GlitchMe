@@ -37,6 +37,8 @@ SCREENS = {
 
 
 async def main(p: Page):
+    p.title = TITLE
+
     p.bgcolor = Colors.with_opacity(0.1, Colors.WHITE)
     p.fonts = {FONT_NAME: FONT_PATH}
     p.theme = Theme(
