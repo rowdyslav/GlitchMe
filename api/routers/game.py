@@ -1,4 +1,3 @@
-from beanie import PydanticObjectId
 from fastapi import APIRouter, Response, status
 
 from ..misc import generate_qr, get_game_connect_link
@@ -19,7 +18,7 @@ router = APIRouter(prefix="/game", tags=["Игра"])
 @router.post(
     "/create",
     status_code=status.HTTP_201_CREATED,
-    summary="Создать лобби",
+    summary="Создать игру",
     response_description="QR-код для подключения к игре",
     responses={
         201: {"content": {"image/*": {}}},
@@ -28,7 +27,7 @@ router = APIRouter(prefix="/game", tags=["Игра"])
     response_class=Response,
 )
 async def create(rounds_count: QueryRoundsCount) -> Response:
-    """Создает объект модели Game, записывает в бд, возвращает QR-код для подключения к игре"""
+    """Создает игру в бд, возвращает QR-код для подключения"""
 
     game = await Game(rounds_count=rounds_count).insert()
     assert (game_id := game.id)
@@ -41,16 +40,16 @@ async def create(rounds_count: QueryRoundsCount) -> Response:
     )
 
 
-@router.post(
+@router.patch(
     "/connect/{game_id}",
     summary="Подключить игрока",
-    response_description="Запись игрока из бд",
+    response_description="Обновленная запись игры из бд",
     responses=ErrorResponsesDict(
-        not_found=True, conflict="игрок уже в игре", unprocessable_entity=True
+        not_found="игра", conflict="игрок уже в игре", unprocessable_entity=True
     ),
 )
-async def connect(game_id: PathGameId, player_data: Player) -> Player:
-    """Находит или регистрирует игрока, добавляет ссылку на него в массив игроков объекта Game"""
+async def connect(game_id: PathGameId, player_data: Player) -> Game:
+    """Находит или регистрирует игрока, добавляет его в игру"""
 
     game = await Game.get(game_id)
     if game is None:
@@ -64,22 +63,22 @@ async def connect(game_id: PathGameId, player_data: Player) -> Player:
 
     await game.connect(pid)
 
-    return player
+    return game
 
 
 @router.post(
     "/start/{game_id}",
     response_model=Game,
     summary="Запустить",
-    response_description="Обновленная запись из бд",
+    response_description="Обновленная запись игры из бд",
     responses=ErrorResponsesDict(
-        not_found=True,
+        not_found="игра",
         conflict="недостатчно игроков для старта",
         unprocessable_entity=True,
     ),
 )
 async def start(game_id: PathGameId) -> Game:
-    """Начинает игру, устанавливая объекту Game поле glitch_player_id"""
+    """Начинает игру"""
 
     game = await Game.get(game_id)
     if game is None:
@@ -95,23 +94,37 @@ async def start(game_id: PathGameId) -> Game:
 @router.get(
     "/players/{game_id}",
     response_model=list[Player],
-    summary="Игроки",
-    response_description="Список игроков",
-    responses=ErrorResponsesDict(not_found=True),
+    summary="Список игроков",
+    response_description="Список записей игроков из бд",
+    responses=ErrorResponsesDict(not_found="игра", unprocessable_entity=True),
 )
-async def players(game_id: PathGameId) -> list[Player]:
+async def players(game_id: PathGameId, response: Response) -> list[Player]:
+    """Получает список игроков или победителей, если игра завершена"""
     game = await Game.get(game_id)
     if game is None:
         raise game_not_found
-    return await game.players()
+    players = await game.players()
+
+    if game.in_voting is None:
+        return players
+
+    alive_players = [p for p in players if p.alive]
+    glitch = next(p for p in players if p.id == game.glitch_player_id)
+    ga = glitch.alive
+
+    if ga and len(alive_players) > 2:
+        return players
+
+    response.headers["game_ended"] = ""
+    return [glitch] if ga else alive_players
 
 
 @router.post(
     "/start_voting/{game_id}",
     response_model=Game,
     summary="Начать голосование",
-    response_description="response_description",
-    responses=ErrorResponsesDict(not_found=True),
+    response_description="Обновленная запись игры из бд",
+    responses=ErrorResponsesDict(not_found="игра", unprocessable_entity=True),
 )
 async def start_voting(game_id: PathGameId) -> Game:
     """Начинает голосование"""

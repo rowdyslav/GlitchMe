@@ -3,31 +3,20 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums.parse_mode import ParseMode
-from aiogram.types import ChatIdUnion
 from aiogram.utils.deep_linking import create_start_link
 from beanie import PydanticObjectId
 from fastapi import FastAPI
-from icecream import ic
 from pydantic import AnyUrl
 from uvicorn import Config, Server
 
 from env import BOT_TOKEN
 
 from .commands import all_routers
+from .misc import MAIN as _
+from .misc import player_vote_ikm
 
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 webhook = FastAPI()
-
-
-@webhook.post("/send_messages/")
-async def send_messages(chats_ids_messages: dict[ChatIdUnion, str]):
-    """Отправляет сообщения в чаты"""
-
-    for chat_id, message in chats_ids_messages.items():
-        try:
-            await bot.send_message(chat_id=chat_id, text=message)
-        except Exception as e:
-            ic(e)
 
 
 @webhook.get("/game_connect_link", response_model=AnyUrl)
@@ -35,6 +24,41 @@ async def game_connect_link(game_id: PydanticObjectId) -> AnyUrl:
     """Возвращает ссылку для подключения к игре"""
 
     return AnyUrl(await create_start_link(bot, str(game_id), encode=True))
+
+
+@webhook.post("/send_messages/")
+async def send_messages(
+    players_data: list[tuple[str, int, bool]] | list[tuple[int, str, None]],
+):
+    """Отправляет сообщения в чаты
+    tuple[name, tg_id, alive] | tuple[tg_id, message, _]"""
+
+    no_messages = all([player[2] is not None for player in players_data])
+    if no_messages:
+        messages_kwargs: list[dict] = []
+        for tg_id in map(lambda x: x[1], players_data):
+            other_players = [
+                {"name": player[0], "tg_id": player[1], "alive": player[2]}
+                for player in players_data
+                if player[1] != tg_id
+            ]
+
+            messages_kwargs.append(
+                {
+                    "chat_id": tg_id,
+                    "text": _["vote_instruction"],
+                    "reply_markup": player_vote_ikm(other_players),
+                }
+            )
+
+    else:
+        messages_kwargs = [
+            {"chat_id": f"{tg_id}", "text": message}
+            for tg_id, message, _ in players_data
+        ]
+
+    for m_kwargs in messages_kwargs:
+        await bot.send_message(**m_kwargs)
 
 
 async def run_bot():

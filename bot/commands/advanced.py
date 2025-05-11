@@ -7,9 +7,9 @@ from ..misc import ADVANCED as _
 from ..misc import (
     PlayerVoteCallback,
     get_game_players,
+    patch_game_connect,
+    patch_player_vote,
     player_vote_ikm,
-    post_game_connect,
-    post_player_vote,
 )
 
 router = Router()
@@ -43,7 +43,7 @@ async def start_deeplink(message: Message, command: CommandObject):
     user_id, player_name = user_data
     game_id = decode_payload(payload)
 
-    await post_game_connect(game_id, user_id, player_name)
+    await patch_game_connect(game_id, user_id, player_name)
     users_games[user_id] = game_id
     await message.answer(_["connected"].format(name=player_name, game_id=game_id))
 
@@ -75,11 +75,15 @@ async def vote(message: Message):
 
     user_id = user_data[0]
     game_players = await get_game_players(users_games[user_id])
+    game_started = any([i["alive"] for i in game_players])
     current_player = next((p for p in game_players if p["tg_id"] == user_id), None)
 
     if not current_player:
         await message.answer(_["not_in_game"])
         return
+
+    if not game_started:
+        await message.answer(_["game_not_started"])
 
     if current_player["voted_for_id"] is not None:
         await message.answer(_["already_voted"])
@@ -104,11 +108,13 @@ async def vote_callback(query: CallbackQuery, callback_data: PlayerVoteCallback)
     if not callback_data.alive:
         await query.answer(_["dead_vote_attempt"])
         return
-    from icecream import ic
 
-    ic(data)
-    response_text = await post_player_vote(data[0], callback_data.tg_id)
-    if response_text == 200:
+    response_status = await patch_player_vote(data[0], callback_data.tg_id)
+    if response_status == 200:
         await query.answer(_["vote_accepted"].format(name=callback_data.name))
-    elif response_text == 409:
-        await query.answer(response_text)
+        if type(message := query.message) is Message:
+            await message.answer(_["vote_accepted"].format(name=callback_data.name))
+            await message.delete()
+
+    elif response_status == 409:
+        await query.answer(str(response_status))

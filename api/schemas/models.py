@@ -1,3 +1,4 @@
+from asyncio import create_task, sleep
 from random import choice, sample
 from typing import Annotated, Any, Optional, Self
 
@@ -40,7 +41,7 @@ class Game(Document):
         name = "games"
 
     def model_post_init(self, __context: Any) -> None:
-        if not self.rounds_keys:
+        if len(self.rounds_keys) != self.rounds_count:
             self.rounds_keys = sample(list(ROUNDS_QUESTIONS), self.rounds_count)
         super().model_post_init(__context)
 
@@ -48,7 +49,8 @@ class Game(Document):
         await Player.find(In(Player.id, self.players_ids)).update_many(
             Set({Player.alive: True})
         )
-        self.glitch_player_id = choice(self.players_ids)
+        await self.set({Game.glitch_player_id: choice(self.players_ids)})
+        await self.set({Game.in_voting: False})
         await self.next_round()
 
     async def connect(self, player_id: PydanticObjectId):
@@ -60,22 +62,31 @@ class Game(Document):
         return await Player.find(In(Player.id, self.players_ids)).to_list()
 
     async def start_voting(self) -> None:
-        self.in_voting = True
-        await self.save()
+        await self.set({Game.in_voting: True})
+        await post_send_messages(
+            [
+                (player.name, player.tg_id, player.alive)
+                for player in await self.players()
+                if player.alive
+            ]
+        )
 
     async def stop_voting(self) -> None:
         players = await self.players()
+
         votes: dict[PydanticObjectId, int] = {}
         for p in players:
-            assert (pvfid := p.voted_for_id) is not None
-            votes[pvfid] = votes.get(pvfid, 0) + 1
-        assert (kicked_player := await Player.get(max(votes.keys()))) is not None
-        await kicked_player.update(Set({Player.alive: False}))
+            assert (voted_id := p.voted_for_id) is not None
+            votes[voted_id] = votes.get(voted_id, 0) + 1
 
+        assert (kicked_player := await Player.get(max(votes.keys()))) is not None
+        await kicked_player.set({Player.alive: False})
         await Player.find(In(Player.id, self.players_ids)).update_many(
             Set({Player.voted_for_id: None})
         )
         await self.set({Game.in_voting: False})
+        if kicked_player.id == self.glitch_player_id:
+            await self.stop()
         await self.next_round()
 
     async def next_round(self) -> None:
@@ -91,15 +102,24 @@ class Game(Document):
         question, glitch_question = sample(questions, 2)
 
         players = await self.players()
-        messages = {p.tg_id: question for p in players}
-
-        glitch = next(p for p in players if p.id == self.glitch_player_id)
-        messages[glitch.tg_id] = glitch_question
+        messages = [
+            (
+                p.tg_id,
+                question if p.id != self.glitch_player_id else glitch_question,
+                None,
+            )
+            for p in players
+        ]
 
         await post_send_messages(messages)
 
     async def stop(self) -> None:
-        await Player.find(In(Player.id, self.players_ids)).update_many(
-            Set({Player.alive: None})
-        )
-        await self.delete()
+        async def _():
+            await sleep(60)
+            await Player.find(In(Player.id, self.players_ids)).update_many(
+                Set({Player.alive: None})
+            )
+            await self.delete()
+
+        create_task(_())
+        return

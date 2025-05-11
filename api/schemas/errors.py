@@ -30,7 +30,7 @@ class ErrorResponsesDict(defaultdict):
     def __init__(
         self,
         *,
-        not_found: bool = False,
+        not_found: Optional[str] = None,
         conflict: Optional[str] = None,
         unprocessable_entity: bool = False,
         service_unavailable: bool = False,
@@ -45,7 +45,7 @@ class ErrorResponsesDict(defaultdict):
             lambda: {"content": {"application/json": {}}, "model": HTTPError}
         )
         if not_found:
-            self[404]["description"] = "Не найдено - игра не существует"
+            self[404]["description"] = f"Не найдено - {not_found} не существует"
         if conflict is not None:
             self[409]["description"] = f"Конфликт - {conflict}"
         if unprocessable_entity:

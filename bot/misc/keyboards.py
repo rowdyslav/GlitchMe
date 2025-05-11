@@ -1,15 +1,14 @@
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from aiogram.utils.keyboard import InlineKeyboardBuilder
-from beanie import PydanticObjectId
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+)
 
 
 class PlayerVoteCallback(CallbackData, prefix="player"):
-    _id: PydanticObjectId
+    name: str
     tg_id: int
     alive: int
-    voted_for_id: PydanticObjectId | None
-    name: str
 
 
 def player_vote_ikm(players: list[dict]):
@@ -17,7 +16,9 @@ def player_vote_ikm(players: list[dict]):
         [
             InlineKeyboardButton(
                 text=f"{player['name']}",
-                callback_data=PlayerVoteCallback(**player).pack(),
+                callback_data=PlayerVoteCallback(
+                    name=player["name"], tg_id=player["tg_id"], alive=player["alive"]
+                ).pack(),
             )
         ]
         for player in players

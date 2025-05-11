@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from ..schemas import (
+    ErrorResponsesDict,
     Game,
     PathPlayerTgId,
     Player,
@@ -15,8 +16,20 @@ from ..schemas import (
 router = APIRouter(prefix="/player", tags=["Игрок"])
 
 
-@router.post("/vote/{player_tg_id}", response_model=Player)
+@router.patch(
+    "/vote/{player_tg_id}",
+    response_model=Player,
+    summary="Проголосовать",
+    response_description="Обновленная запись игрока из бд",
+    responses=ErrorResponsesDict(
+        not_found="игрок или голосуемый",
+        conflict="игрок: не в игре|исключен|уже проголосовал|голосует за себя",
+        unprocessable_entity=True,
+    ),
+)
 async def vote(player_tg_id: PathPlayerTgId, voted_tg_id: QueryPlayerTgId) -> Player:
+    """Отдает голос за игрока с тг айди voted_tg_id от игрока с тг айди player_tg_id"""
+
     player = await Player.find_one(Player.tg_id == player_tg_id)
     voted = await Player.find_one(Player.tg_id == voted_tg_id)
     if player is None or voted is None:
@@ -42,5 +55,14 @@ async def vote(player_tg_id: PathPlayerTgId, voted_tg_id: QueryPlayerTgId) -> Pl
 
     player.voted_for_id = voted.id
     await player.save()
+
+    if all(
+        (
+            player.voted_for_id is not None
+            for player in await game.players()
+            if player.alive
+        )
+    ):
+        await game.stop_voting()
 
     return player

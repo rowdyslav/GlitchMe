@@ -3,9 +3,9 @@ from aiohttp import ClientSession
 from env import API_URL
 
 
-async def post_game_connect(game_id: str, player_tg_id: int, player_name: str) -> None:
+async def patch_game_connect(game_id: str, player_tg_id: int, player_name: str) -> None:
     async with ClientSession() as session:
-        await session.post(
+        await session.patch(
             f"{API_URL}/game/connect/{game_id}",
             json={"name": player_name, "tg_id": player_tg_id},
         )
@@ -17,9 +17,9 @@ async def get_game_players(game_id: str) -> list:
             return await response.json()
 
 
-async def post_player_vote(player_tg_id: int, voted_tg_id: int) -> None:
+async def patch_player_vote(player_tg_id: int, voted_tg_id: int) -> int:
     async with ClientSession() as session:
-        async with session.post(
+        async with session.patch(
             f"{API_URL}/player/vote/{player_tg_id}", params={"voted_tg_id": voted_tg_id}
-        )as response:
-            return  await response.text()
+        ) as response:
+            return response.status
