@@ -17,11 +17,11 @@ from config import ROUNDS_MAX_COUNT as mrc
 from ..misc import post_game_create
 
 
-async def index(p: Page):
+async def index(p: Page) -> tuple[Text, Slider, Row]:
     text = Text("Количество раундов", size=24)
     slider = Slider(min=1, max=mrc, value=mrc - 1, label="{value}", divisions=mrc - 1)
 
-    async def create(_: ControlEvent):
+    async def create(_: ControlEvent) -> None:
         slider.disabled = True
         button.disabled = True
         progress_ring.visible = True

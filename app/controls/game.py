@@ -26,21 +26,23 @@ async def game(p: Page) -> tuple[Text, Row, Button] | None:
     round_num = 1
 
     text = Text(f"Раунд {round_num}", size=24, text_align=TextAlign.CENTER)
-    row = Row([], alignment=MainAxisAlignment.CENTER, spacing=10)
+    row = Row([], MainAxisAlignment.CENTER, spacing=10)
 
-    async def get_alive_players_names():
+    async def get_alive_players_names() -> tuple[set[str], bool]:
         players, ended = await get_game_players(game_id)
         alive = {player["name"] for player in players if player["alive"]}
         return alive, ended
 
-    def set_players_names(players_names: set[str]):
-        row.controls = [Text(n, text_align=TextAlign.START) for n in players_names]
+    def set_players_names(players_names: set[str]) -> None:
+        row.controls = [
+            Text(name, text_align=TextAlign.START) for name in players_names
+        ]
         p.update()
 
     alive_players_names = (await get_alive_players_names())[0]
     set_players_names(alive_players_names)
 
-    async def monitor_voting():
+    async def monitor_voting() -> None:
         nonlocal round_num, alive_players_names
 
         old_alive = alive_players_names.copy()
@@ -79,7 +81,7 @@ async def game(p: Page) -> tuple[Text, Row, Button] | None:
                     p.update()
                 break
 
-    async def start_voting(_: ControlEvent):
+    async def start_voting(_: ControlEvent) -> None:
         button.visible = False
         p.update()
 
