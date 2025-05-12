@@ -70,12 +70,11 @@ async def lobby(p: Page) -> tuple[Text, Image, Text, Column, Button] | None:
                 )
                 for name in names
             ]
-
+            p.update()
             if players_count >= game_players_min_count:
                 button.disabled = False
+                p.update()
                 break
-
-            p.update()
 
     create_task(monitor_players())
     return (qr_text, image, players_text, column, button)

@@ -87,6 +87,7 @@ class Game(Document):
         await self.set({Game.in_voting: False})
         if kicked_player.id == self.glitch_player_id:
             await self.stop()
+            return
         await self.next_round()
 
     async def next_round(self) -> None:
