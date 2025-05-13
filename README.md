@@ -1,13 +1,14 @@
 <div align="center">
-  <h1>GlitchMe! 🔀</h1>
-  <p>Настольная «хардкорная» социальная игра с REST-API, реактивным фронтендом и Telegram-ботом.</p>
+  <h1>GlitchMe!</h1>
+  <p>Настольная игра с REST-API, реактивным фронтендом и Telegram-ботом.</p>
+
 </div>
 
+
   [![Python](https://img.shields.io/badge/python-3.13-blue)](https://www.python.org/)
-  [![FastAPI](https://img.shields.io/badge/fastapi-success)](https://fastapi.tiangolo.com/)
+  [![FastAPI](https://img.shields.io/badge/fastapi-0.115-success)](https://fastapi.tiangolo.com/)
   [![Flet](https://img.shields.io/badge/flet-0.28-purple)](https://flet.dev/)
   [![Aiogram3](https://img.shields.io/badge/aiogram-3.20-green)](https://docs.aiogram.dev/)
-
 ---
 
 ## 📖 Описание
